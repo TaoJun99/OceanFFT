@@ -16,8 +16,29 @@ float cameraWidth = 800.0f;
 float cameraHeight = 600.0f;
 Camera camera(cameraWidth, cameraHeight, cameraPos);
 int waterPlaneIndexCount;
+GLuint oceanHeightTexture;
+GLuint fftTexture;
+
+GLuint fourierShader;
+
+GLuint framebuffer;
 
 
+// Grid size
+const int gridSize = 1000; // Number of segments in each direction
+const float size = 25.0f;  // Size of the plane
+
+float quadVertices[] = {
+        -1.0f, -1.0f,
+        1.0f, -1.0f,
+        1.0f,  1.0f,
+        -1.0f,  1.0f
+};
+
+unsigned int quadIndices[] = {
+        0, 1, 2,
+        2, 3, 0
+};
 
 // Function to read shader source from file
 std::string readShaderSource(const std::string& filePath) {
@@ -75,9 +96,7 @@ GLuint createShaderProgram(const std::string& vertexPath, const std::string& fra
     return shaderProgram;
 }
 
-// Grid size
-const int gridSize = 1000; // Number of segments in each direction
-const float size = 25.0f;  // Size of the plane
+
 
 void generatePlane(float** vertices, unsigned int** indices, int* indexCount) {
     // Generate vertices
@@ -157,6 +176,7 @@ void drawWater() {
 //    GLuint lightAmbientLoc = glGetUniformLocation(waterShader, "LightAmbient");
 //    GLuint lightDiffuseLoc = glGetUniformLocation(waterShader, "LightDiffuse");
 //    GLuint lightSpecularLoc = glGetUniformLocation(waterShader, "LightSpecular");
+    GLuint textureLoc = glGetUniformLocation(waterShader, "inputTexture");
 
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
@@ -166,6 +186,7 @@ void drawWater() {
 //    glUniform4f(lightAmbientLoc, lightAmbient[0], lightAmbient[1], lightAmbient[2], lightAmbient[3]);
 //    glUniform4f(lightDiffuseLoc, lightDiffuse[0], lightDiffuse[1], lightDiffuse[2], lightDiffuse[3]);
 //    glUniform4f(lightSpecularLoc, lightSpecular[0], lightSpecular[1], lightSpecular[2], lightSpecular[3]);
+    glUniform1i(textureLoc, 1);
 
     glBindVertexArray(waterVAO);
 //    glBindTexture(GL_TEXTURE_CUBE_MAP, skyBoxtid);
@@ -173,6 +194,36 @@ void drawWater() {
     glBindVertexArray(0);
 
 }
+
+void computeFourier() {
+    glUseProgram(fourierShader);
+
+    GLuint alphaLoc = glGetUniformLocation(fourierShader, "alpha");
+    GLuint gLoc = glGetUniformLocation(fourierShader, "g");
+    GLuint k_pLoc = glGetUniformLocation(fourierShader, "k_p");
+    GLuint gammaLoc = glGetUniformLocation(fourierShader, "gamma");
+    GLuint NLoc = glGetUniformLocation(fourierShader, "N");
+    GLuint LLoc = glGetUniformLocation(fourierShader, "L");
+
+    glUniform1f(alphaLoc, 0.0081);
+    glUniform1f(gLoc, 9.81);
+    glUniform1f(k_pLoc, 0.03);
+    glUniform1f(gammaLoc, 3.3);
+    glUniform1i(NLoc, gridSize);
+    glUniform1f(LLoc, size);
+
+    glViewport(0, 0, gridSize, gridSize);
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fftTexture, 0);
+
+    glBindVertexArray(waterVAO);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
+    // Unbind the framebuffer
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
 
 void cleanup() {
     // Clean up resources
@@ -217,8 +268,57 @@ int main() {
 
     // Load and compile shaders
     waterShader = createShaderProgram("../shader.vert", "../shader.frag");
+    fourierShader = createShaderProgram("../shader.vert", "../fourierShader.frag");
 
-    setupWater();
+    GLuint VAO, VBO, EBO;
+    // Create VAO, VBO, EBO
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
+
+    glBindVertexArray(VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(quadIndices), quadIndices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+    // Textures
+    glActiveTexture(GL_TEXTURE0);
+    glGenTextures(1, &oceanHeightTexture);
+    glBindTexture(GL_TEXTURE_2D, oceanHeightTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, gridSize, gridSize, 0, GL_RG, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glActiveTexture(GL_TEXTURE1);
+    glGenTextures(1, &fftTexture);
+    glBindTexture(GL_TEXTURE_2D, fftTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, gridSize, gridSize, 0, GL_RG, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // Create framebuffer
+    glGenFramebuffers(1, &framebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fftTexture, 0);
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::cerr << "Framebuffer is not complete!" << std::endl;
+    } else {
+        std::cout << "Framebuffer complete!" << std::endl;
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    setupWater(); // Create vertices for the water height plane
+    computeFourier();
 
     while (!glfwWindowShouldClose(window)) {
         // Clear screen and depth buffer

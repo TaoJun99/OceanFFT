@@ -382,3 +382,181 @@ events:
       
       
 ...
+
+---
+events:
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.26/Modules/CheckSymbolExists.cmake:145 (try_compile)"
+      - "/Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.26/Modules/CheckSymbolExists.cmake:71 (__CHECK_SYMBOL_EXISTS_IMPL)"
+      - "/Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.26/Modules/FindOpenCL.cmake:52 (CHECK_SYMBOL_EXISTS)"
+      - "/Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.26/Modules/FindOpenCL.cmake:95 (_FIND_OPENCL_VERSION)"
+      - "CMakeLists.txt:26 (find_package)"
+    checks:
+      - "Looking for CL_VERSION_3_0"
+    directories:
+      source: "/Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-QfVtKi"
+      binary: "/Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-QfVtKi"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_OSX_ARCHITECTURES: ""
+      CMAKE_OSX_DEPLOYMENT_TARGET: ""
+      CMAKE_OSX_SYSROOT: "/Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk"
+    buildResult:
+      variable: "OPENCL_VERSION_3_0"
+      cached: true
+      stdout: |
+        Change Dir: /Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-QfVtKi
+        
+        Run Build Command(s):/Applications/CLion.app/Contents/bin/ninja/mac/ninja -v cmTC_30d10 && [1/2] /Applications/Xcode_13.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc  -F/Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks -arch arm64 -isysroot /Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk -fcolor-diagnostics -MD -MT CMakeFiles/cmTC_30d10.dir/CheckSymbolExists.c.o -MF CMakeFiles/cmTC_30d10.dir/CheckSymbolExists.c.o.d -o CMakeFiles/cmTC_30d10.dir/CheckSymbolExists.c.o -c /Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-QfVtKi/CheckSymbolExists.c
+        FAILED: CMakeFiles/cmTC_30d10.dir/CheckSymbolExists.c.o 
+        /Applications/Xcode_13.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc  -F/Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks -arch arm64 -isysroot /Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk -fcolor-diagnostics -MD -MT CMakeFiles/cmTC_30d10.dir/CheckSymbolExists.c.o -MF CMakeFiles/cmTC_30d10.dir/CheckSymbolExists.c.o.d -o CMakeFiles/cmTC_30d10.dir/CheckSymbolExists.c.o -c /Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-QfVtKi/CheckSymbolExists.c
+        /Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-QfVtKi/CheckSymbolExists.c:8:19: error: use of undeclared identifier 'CL_VERSION_3_0'
+          return ((int*)(&CL_VERSION_3_0))[argc];
+                          ^
+        1 error generated.
+        ninja: build stopped: subcommand failed.
+        
+      exitCode: 1
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.26/Modules/CheckSymbolExists.cmake:145 (try_compile)"
+      - "/Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.26/Modules/CheckSymbolExists.cmake:71 (__CHECK_SYMBOL_EXISTS_IMPL)"
+      - "/Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.26/Modules/FindOpenCL.cmake:52 (CHECK_SYMBOL_EXISTS)"
+      - "/Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.26/Modules/FindOpenCL.cmake:95 (_FIND_OPENCL_VERSION)"
+      - "CMakeLists.txt:26 (find_package)"
+    checks:
+      - "Looking for CL_VERSION_2_2"
+    directories:
+      source: "/Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-9EstYe"
+      binary: "/Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-9EstYe"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_OSX_ARCHITECTURES: ""
+      CMAKE_OSX_DEPLOYMENT_TARGET: ""
+      CMAKE_OSX_SYSROOT: "/Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk"
+    buildResult:
+      variable: "OPENCL_VERSION_2_2"
+      cached: true
+      stdout: |
+        Change Dir: /Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-9EstYe
+        
+        Run Build Command(s):/Applications/CLion.app/Contents/bin/ninja/mac/ninja -v cmTC_39724 && [1/2] /Applications/Xcode_13.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc  -F/Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks -arch arm64 -isysroot /Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk -fcolor-diagnostics -MD -MT CMakeFiles/cmTC_39724.dir/CheckSymbolExists.c.o -MF CMakeFiles/cmTC_39724.dir/CheckSymbolExists.c.o.d -o CMakeFiles/cmTC_39724.dir/CheckSymbolExists.c.o -c /Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-9EstYe/CheckSymbolExists.c
+        FAILED: CMakeFiles/cmTC_39724.dir/CheckSymbolExists.c.o 
+        /Applications/Xcode_13.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc  -F/Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks -arch arm64 -isysroot /Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk -fcolor-diagnostics -MD -MT CMakeFiles/cmTC_39724.dir/CheckSymbolExists.c.o -MF CMakeFiles/cmTC_39724.dir/CheckSymbolExists.c.o.d -o CMakeFiles/cmTC_39724.dir/CheckSymbolExists.c.o -c /Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-9EstYe/CheckSymbolExists.c
+        /Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-9EstYe/CheckSymbolExists.c:8:19: error: use of undeclared identifier 'CL_VERSION_2_2'
+          return ((int*)(&CL_VERSION_2_2))[argc];
+                          ^
+        1 error generated.
+        ninja: build stopped: subcommand failed.
+        
+      exitCode: 1
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.26/Modules/CheckSymbolExists.cmake:145 (try_compile)"
+      - "/Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.26/Modules/CheckSymbolExists.cmake:71 (__CHECK_SYMBOL_EXISTS_IMPL)"
+      - "/Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.26/Modules/FindOpenCL.cmake:52 (CHECK_SYMBOL_EXISTS)"
+      - "/Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.26/Modules/FindOpenCL.cmake:95 (_FIND_OPENCL_VERSION)"
+      - "CMakeLists.txt:26 (find_package)"
+    checks:
+      - "Looking for CL_VERSION_2_1"
+    directories:
+      source: "/Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-M3Saff"
+      binary: "/Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-M3Saff"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_OSX_ARCHITECTURES: ""
+      CMAKE_OSX_DEPLOYMENT_TARGET: ""
+      CMAKE_OSX_SYSROOT: "/Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk"
+    buildResult:
+      variable: "OPENCL_VERSION_2_1"
+      cached: true
+      stdout: |
+        Change Dir: /Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-M3Saff
+        
+        Run Build Command(s):/Applications/CLion.app/Contents/bin/ninja/mac/ninja -v cmTC_6c2fb && [1/2] /Applications/Xcode_13.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc  -F/Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks -arch arm64 -isysroot /Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk -fcolor-diagnostics -MD -MT CMakeFiles/cmTC_6c2fb.dir/CheckSymbolExists.c.o -MF CMakeFiles/cmTC_6c2fb.dir/CheckSymbolExists.c.o.d -o CMakeFiles/cmTC_6c2fb.dir/CheckSymbolExists.c.o -c /Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-M3Saff/CheckSymbolExists.c
+        FAILED: CMakeFiles/cmTC_6c2fb.dir/CheckSymbolExists.c.o 
+        /Applications/Xcode_13.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc  -F/Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks -arch arm64 -isysroot /Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk -fcolor-diagnostics -MD -MT CMakeFiles/cmTC_6c2fb.dir/CheckSymbolExists.c.o -MF CMakeFiles/cmTC_6c2fb.dir/CheckSymbolExists.c.o.d -o CMakeFiles/cmTC_6c2fb.dir/CheckSymbolExists.c.o -c /Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-M3Saff/CheckSymbolExists.c
+        /Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-M3Saff/CheckSymbolExists.c:8:19: error: use of undeclared identifier 'CL_VERSION_2_1'
+          return ((int*)(&CL_VERSION_2_1))[argc];
+                          ^
+        1 error generated.
+        ninja: build stopped: subcommand failed.
+        
+      exitCode: 1
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.26/Modules/CheckSymbolExists.cmake:145 (try_compile)"
+      - "/Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.26/Modules/CheckSymbolExists.cmake:71 (__CHECK_SYMBOL_EXISTS_IMPL)"
+      - "/Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.26/Modules/FindOpenCL.cmake:52 (CHECK_SYMBOL_EXISTS)"
+      - "/Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.26/Modules/FindOpenCL.cmake:95 (_FIND_OPENCL_VERSION)"
+      - "CMakeLists.txt:26 (find_package)"
+    checks:
+      - "Looking for CL_VERSION_2_0"
+    directories:
+      source: "/Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-GgHZWp"
+      binary: "/Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-GgHZWp"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_OSX_ARCHITECTURES: ""
+      CMAKE_OSX_DEPLOYMENT_TARGET: ""
+      CMAKE_OSX_SYSROOT: "/Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk"
+    buildResult:
+      variable: "OPENCL_VERSION_2_0"
+      cached: true
+      stdout: |
+        Change Dir: /Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-GgHZWp
+        
+        Run Build Command(s):/Applications/CLion.app/Contents/bin/ninja/mac/ninja -v cmTC_7183e && [1/2] /Applications/Xcode_13.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc  -F/Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks -arch arm64 -isysroot /Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk -fcolor-diagnostics -MD -MT CMakeFiles/cmTC_7183e.dir/CheckSymbolExists.c.o -MF CMakeFiles/cmTC_7183e.dir/CheckSymbolExists.c.o.d -o CMakeFiles/cmTC_7183e.dir/CheckSymbolExists.c.o -c /Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-GgHZWp/CheckSymbolExists.c
+        FAILED: CMakeFiles/cmTC_7183e.dir/CheckSymbolExists.c.o 
+        /Applications/Xcode_13.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc  -F/Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks -arch arm64 -isysroot /Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk -fcolor-diagnostics -MD -MT CMakeFiles/cmTC_7183e.dir/CheckSymbolExists.c.o -MF CMakeFiles/cmTC_7183e.dir/CheckSymbolExists.c.o.d -o CMakeFiles/cmTC_7183e.dir/CheckSymbolExists.c.o -c /Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-GgHZWp/CheckSymbolExists.c
+        /Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-GgHZWp/CheckSymbolExists.c:8:19: error: use of undeclared identifier 'CL_VERSION_2_0'
+          return ((int*)(&CL_VERSION_2_0))[argc];
+                          ^
+        1 error generated.
+        ninja: build stopped: subcommand failed.
+        
+      exitCode: 1
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.26/Modules/CheckSymbolExists.cmake:145 (try_compile)"
+      - "/Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.26/Modules/CheckSymbolExists.cmake:71 (__CHECK_SYMBOL_EXISTS_IMPL)"
+      - "/Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.26/Modules/FindOpenCL.cmake:52 (CHECK_SYMBOL_EXISTS)"
+      - "/Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.26/Modules/FindOpenCL.cmake:95 (_FIND_OPENCL_VERSION)"
+      - "CMakeLists.txt:26 (find_package)"
+    checks:
+      - "Looking for CL_VERSION_1_2"
+    directories:
+      source: "/Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-uaJU3j"
+      binary: "/Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-uaJU3j"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_OSX_ARCHITECTURES: ""
+      CMAKE_OSX_DEPLOYMENT_TARGET: ""
+      CMAKE_OSX_SYSROOT: "/Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk"
+    buildResult:
+      variable: "OPENCL_VERSION_1_2"
+      cached: true
+      stdout: |
+        Change Dir: /Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-uaJU3j
+        
+        Run Build Command(s):/Applications/CLion.app/Contents/bin/ninja/mac/ninja -v cmTC_94f1f && [1/2] /Applications/Xcode_13.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc  -F/Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks -arch arm64 -isysroot /Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk -fcolor-diagnostics -MD -MT CMakeFiles/cmTC_94f1f.dir/CheckSymbolExists.c.o -MF CMakeFiles/cmTC_94f1f.dir/CheckSymbolExists.c.o.d -o CMakeFiles/cmTC_94f1f.dir/CheckSymbolExists.c.o -c /Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-uaJU3j/CheckSymbolExists.c
+        [2/2] : && /Applications/Xcode_13.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc -arch arm64 -isysroot /Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk -Wl,-search_paths_first -Wl,-headerpad_max_install_names  CMakeFiles/cmTC_94f1f.dir/CheckSymbolExists.c.o -o cmTC_94f1f   && :
+        
+      exitCode: 0
+...
