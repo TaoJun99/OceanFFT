@@ -1,0 +1,129 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"INSTALL"
+		],
+		"files" : 
+		[
+			"clFFT/src/examples/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 50,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 51,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 50,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 51,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 50,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 51,
+				"parent" : 0
+			}
+		]
+	},
+	"installers" : 
+	[
+		{
+			"backtrace" : 1,
+			"component" : "Unspecified",
+			"destination" : "share/clFFT/examples",
+			"paths" : 
+			[
+				"clFFT/src/examples/fft1d.c"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 2,
+			"component" : "Unspecified",
+			"destination" : "share/clFFT/examples",
+			"paths" : 
+			[
+				"clFFT/src/examples/examples/fft1d"
+			],
+			"targetId" : "example_examples_fft1d::@d1ca6812d39e46096d57",
+			"targetIndex" : 3,
+			"type" : "target"
+		},
+		{
+			"backtrace" : 3,
+			"component" : "Unspecified",
+			"destination" : "share/clFFT/examples",
+			"paths" : 
+			[
+				"clFFT/src/examples/fft2d.c"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 4,
+			"component" : "Unspecified",
+			"destination" : "share/clFFT/examples",
+			"paths" : 
+			[
+				"clFFT/src/examples/examples/fft2d"
+			],
+			"targetId" : "example_examples_fft2d::@d1ca6812d39e46096d57",
+			"targetIndex" : 4,
+			"type" : "target"
+		},
+		{
+			"backtrace" : 5,
+			"component" : "Unspecified",
+			"destination" : "share/clFFT/examples",
+			"paths" : 
+			[
+				"clFFT/src/examples/fft3d.c"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 6,
+			"component" : "Unspecified",
+			"destination" : "share/clFFT/examples",
+			"paths" : 
+			[
+				"clFFT/src/examples/examples/fft3d"
+			],
+			"targetId" : "example_examples_fft3d::@d1ca6812d39e46096d57",
+			"targetIndex" : 5,
+			"type" : "target"
+		}
+	],
+	"paths" : 
+	{
+		"build" : "clFFT/src/examples",
+		"source" : "clFFT/src/examples"
+	}
+}

@@ -1,4 +1,29 @@
 /Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/Applications/CLion.app/Contents/bin/ninja/mac/ninja -G Ninja -S /Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT -B /Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/cmake-build-debug
--- Configuring done (0.0s)
+-- CMAKE_SOURCE_DIR: /Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT
+-- UNICODE feature disabled on linux
+-- 64bit build - FIND_LIBRARY_USE_LIB64_PATHS TRUE
+-- Boost_PROGRAM_OPTIONS_LIBRARY: Boost::program_options
+-- CMAKE_CXX_COMPILER flags: 
+-- CMAKE_CXX_COMPILER debug flags: -g
+-- CMAKE_CXX_COMPILER release flags: -O3 -DNDEBUG
+-- CMAKE_CXX_COMPILER relwithdebinfo flags: -O2 -g -DNDEBUG
+-- CMAKE_EXE_LINKER link flags: 
+FFT clients will NOT be built
+GoogleTest unit tests will NOT be built
+FFT callback client will NOT be built
+-- Configuring done (0.1s)
+CMake Warning (dev):
+  Policy CMP0068 is not set: RPATH settings on macOS do not affect
+  install_name.  Run "cmake --help-policy CMP0068" for policy details.  Use
+  the cmake_policy command to set the policy and suppress this warning.
+
+  For compatibility with older versions of CMake, the install_name fields for
+  the following targets are still affected by RPATH settings:
+
+   StatTimer
+   clFFT
+
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
 -- Generating done (0.0s)
 -- Build files have been written to: /Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/cmake-build-debug

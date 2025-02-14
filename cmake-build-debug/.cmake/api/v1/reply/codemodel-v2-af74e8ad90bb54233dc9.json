@@ -1,0 +1,204 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1
+					],
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-.-Debug-f5ebdc15457944623624.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.2"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0
+					]
+				},
+				{
+					"build" : "clFFT/src",
+					"childIndexes" : 
+					[
+						2,
+						3,
+						4,
+						5
+					],
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-clFFT.src-Debug-d02f0e84769115906439.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.1"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 1,
+					"source" : "clFFT/src"
+				},
+				{
+					"build" : "clFFT/src/library",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-clFFT.src.library-Debug-5032c0525790756c0ca2.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.1"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 1,
+					"source" : "clFFT/src/library",
+					"targetIndexes" : 
+					[
+						2
+					]
+				},
+				{
+					"build" : "clFFT/src/scripts/perf",
+					"jsonFile" : "directory-clFFT.src.scripts.perf-Debug-8c901d76323802040b7f.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.1"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 1,
+					"source" : "clFFT/src/scripts/perf"
+				},
+				{
+					"build" : "clFFT/src/statTimer",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-clFFT.src.statTimer-Debug-11c1e65ba6f5da334d78.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.1"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 1,
+					"source" : "clFFT/src/statTimer",
+					"targetIndexes" : 
+					[
+						1
+					]
+				},
+				{
+					"build" : "clFFT/src/examples",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-clFFT.src.examples-Debug-167210b386c7d261c1f8.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.1"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 1,
+					"source" : "clFFT/src/examples",
+					"targetIndexes" : 
+					[
+						3,
+						4,
+						5
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"childIndexes" : 
+					[
+						1
+					],
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "OceanFFT",
+					"targetIndexes" : 
+					[
+						0
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						1,
+						2,
+						3,
+						4,
+						5
+					],
+					"name" : "clFFT",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						1,
+						2,
+						3,
+						4,
+						5
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "OceanFFT::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-OceanFFT-Debug-31541fd3ef3eb84bf40f.json",
+					"name" : "OceanFFT",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "StatTimer::@25069e2164681c52f830",
+					"jsonFile" : "target-StatTimer-Debug-2edd42be9431a985ac60.json",
+					"name" : "StatTimer",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "clFFT::@7a0fcd2e6c5f78f8b8a7",
+					"jsonFile" : "target-clFFT-Debug-85a1053e9f5428c1907b.json",
+					"name" : "clFFT",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "example_examples_fft1d::@d1ca6812d39e46096d57",
+					"jsonFile" : "target-example_examples_fft1d-Debug-a6ab5555391fd4a664ae.json",
+					"name" : "example_examples_fft1d",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "example_examples_fft2d::@d1ca6812d39e46096d57",
+					"jsonFile" : "target-example_examples_fft2d-Debug-c75e7fd9900486d1edb7.json",
+					"name" : "example_examples_fft2d",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "example_examples_fft3d::@d1ca6812d39e46096d57",
+					"jsonFile" : "target-example_examples_fft3d-Debug-f2462873585c4c45c500.json",
+					"name" : "example_examples_fft3d",
+					"projectIndex" : 1
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/cmake-build-debug",
+		"source" : "/Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 5
+	}
+}

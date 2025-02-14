@@ -13,12 +13,24 @@ add_executable(OceanFFT ${SOURCE_FILES}
 )
 
 # Find OpenCL
-find_package(OpenCL REQUIRED)
-target_link_libraries(OceanFFT PRIVATE OpenCL)
+if(APPLE)
+    target_link_libraries(OceanFFT PRIVATE "-framework OpenCL")
+else()
+    find_package(OpenCL REQUIRED)
+    target_link_libraries(OceanFFT PRIVATE ${OpenCL_LIBRARIES})
+endif()
 
-include_directories(${CMAKE_SOURCE_DIR}/clFFT/include)
-link_directories(${CMAKE_SOURCE_DIR}/clFFT/lib64)
+message(STATUS "CMAKE_SOURCE_DIR: ${CMAKE_SOURCE_DIR}")
 
+
+#set(CMAKE_BUILD_RPATH "${CMAKE_SOURCE_DIR}/clFFT/src/library")
+#set(CMAKE_INSTALL_RPATH "${CMAKE_SOURCE_DIR}/clFFT/src/library")
+
+
+add_subdirectory(clFFT/src)
+include_directories(${CMAKE_SOURCE_DIR}/clFFT/src/include)
+link_directories(${CMAKE_SOURCE_DIR}/clFFT/src/library)
+include_directories(${CMAKE_BINARY_DIR}/clFFT/src/include)
 target_link_libraries(OceanFFT PRIVATE clFFT)
 
 # Find GLFW

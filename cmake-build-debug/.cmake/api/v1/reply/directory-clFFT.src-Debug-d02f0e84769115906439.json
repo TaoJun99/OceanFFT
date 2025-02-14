@@ -1,0 +1,91 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"install"
+		],
+		"files" : 
+		[
+			"clFFT/src/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 253,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 318,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 319,
+				"parent" : 0
+			}
+		]
+	},
+	"installers" : 
+	[
+		{
+			"backtrace" : 1,
+			"component" : "Unspecified",
+			"destination" : "./include",
+			"paths" : 
+			[
+				"cmake-build-debug/clFFT/src/include/clFFT.version.h",
+				"clFFT/src/include/clFFT.h",
+				"clFFT/src/include/clAmdFft.h",
+				"clFFT/src/include/clAmdFft.version.h"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 2,
+			"component" : "Unspecified",
+			"destination" : "lib/cmake/clFFT",
+			"exportName" : "Library",
+			"exportTargets" : 
+			[
+				{
+					"id" : "clFFT::@7a0fcd2e6c5f78f8b8a7",
+					"index" : 2
+				},
+				{
+					"id" : "StatTimer::@25069e2164681c52f830",
+					"index" : 1
+				}
+			],
+			"paths" : 
+			[
+				"clFFT/src/CMakeFiles/Export/3ff55f24fcfebf2838df5f57b68f9c1a/clFFTTargets.cmake"
+			],
+			"type" : "export"
+		},
+		{
+			"backtrace" : 3,
+			"component" : "Unspecified",
+			"destination" : "lib/cmake/clFFT",
+			"paths" : 
+			[
+				"cmake-build-debug/clFFT/src/clFFTConfigVersion.cmake",
+				"cmake-build-debug/clFFT/src/clFFTConfig.cmake"
+			],
+			"type" : "file"
+		}
+	],
+	"paths" : 
+	{
+		"build" : "clFFT/src",
+		"source" : "clFFT/src"
+	}
+}

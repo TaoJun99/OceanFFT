@@ -6,6 +6,8 @@
 #include <string>
 #include <glm/gtc/type_ptr.hpp>
 #include "Camera.h"
+#include "OpenCLFFT.h"
+#include <clFFT.h>
 
 
 GLuint waterVAO, waterVBO, waterEBO, waterShader;
@@ -22,6 +24,8 @@ GLuint fftTexture;
 GLuint fourierShader;
 
 GLuint framebuffer;
+
+OpenCLFFT fftProcessor;
 
 
 // Grid size
@@ -188,6 +192,8 @@ void drawWater() {
 //    glUniform4f(lightSpecularLoc, lightSpecular[0], lightSpecular[1], lightSpecular[2], lightSpecular[3]);
     glUniform1i(textureLoc, 1);
 
+
+
     glBindVertexArray(waterVAO);
 //    glBindTexture(GL_TEXTURE_CUBE_MAP, skyBoxtid);
     glDrawElements(GL_TRIANGLES, waterPlaneIndexCount, GL_UNSIGNED_INT, 0);
@@ -320,6 +326,10 @@ int main() {
     setupWater(); // Create vertices for the water height plane
     computeFourier();
 
+    fftProcessor.setup();
+    fftProcessor.performFFT();
+    fftProcessor.performIFFT();  // Execute the inverse FFT
+
     while (!glfwWindowShouldClose(window)) {
         // Clear screen and depth buffer
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -332,6 +342,10 @@ int main() {
         glDisable(GL_DEPTH_TEST);
 //        drawSkybox();
         glEnable(GL_DEPTH_TEST);
+
+        int width, height;
+        glfwGetFramebufferSize(window, &width, &height);
+        glViewport(0, 0, width, height);
         drawWater();
 
 
@@ -341,6 +355,8 @@ int main() {
         // Poll for and process events
         glfwPollEvents();
     }
+
+    clfftTeardown();
 
     cleanup();
     glfwTerminate();

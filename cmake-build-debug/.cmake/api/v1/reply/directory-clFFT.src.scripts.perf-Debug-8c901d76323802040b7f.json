@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "clFFT/src/scripts/perf",
+		"source" : "clFFT/src/scripts/perf"
+	}
+}

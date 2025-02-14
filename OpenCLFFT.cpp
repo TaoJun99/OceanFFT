@@ -1,85 +1,136 @@
 #include "OpenCLFFT.h"
 #include <OpenCL/cl.h>
-#include <iostream>
-#include <fstream>
-#include <vector>
-
 #include <clFFT.h>
+#include <iostream>
+#include <vector>
+#include <cmath>
 
-OpenCLFFT::OpenCLFFT() {
-    // Constructor (no specific initialization here)
-}
+OpenCLFFT::OpenCLFFT() : inputBuffer(nullptr), outputBuffer(nullptr), queue(nullptr), context(nullptr), fftPlan(0) {}
 
 OpenCLFFT::~OpenCLFFT() {
-    // Cleanup OpenCL resources
-    if (program) {
-        clReleaseProgram(program);
-    }
-    if (fftKernel) {
-        clReleaseKernel(fftKernel);
-    }
-    if (inputBuffer) {
-        clReleaseMemObject(inputBuffer);
-    }
-    if (outputBuffer) {
-        clReleaseMemObject(outputBuffer);
-    }
-    if (queue) {
-        clReleaseCommandQueue(queue);
-    }
-    if (context) {
-        clReleaseContext(context);
+    cleanup();
+}
+
+void OpenCLFFT::cleanup() {
+    if (inputBuffer) clReleaseMemObject(inputBuffer);
+    if (outputBuffer) clReleaseMemObject(outputBuffer);
+    if (queue) clReleaseCommandQueue(queue);
+    if (context) clReleaseContext(context);
+    if (fftPlan) clfftDestroyPlan(&fftPlan);
+    clfftTeardown();
+}
+
+void OpenCLFFT::checkError(cl_int err, const char* operation) {
+    if (err != CL_SUCCESS) {
+        std::cerr << "OpenCL error during " << operation << ": " << err << std::endl;
+        cleanup();
+        exit(1);
     }
 }
 
 void OpenCLFFT::setup() {
-    // Set up OpenCL context, queue, and program
-
-    cl_platform_id platform;
-    clGetPlatformIDs(1, &platform, nullptr);
-
-    cl_device_id device;
-    clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 1, &device, nullptr);
-
-    // Create OpenCL context and command queue
-    context = clCreateContext(nullptr, 1, &device, nullptr, nullptr, nullptr);
-    queue = clCreateCommandQueue(context, device, 0, nullptr);
-
-    // Load OpenCL program (kernel code)
-    std::ifstream kernelFile("fft_kernel.cl");  // OpenCL kernel source file
-    std::string kernelCode((std::istreambuf_iterator<char>(kernelFile)),
-                           std::istreambuf_iterator<char>());
-
-    const char* kernelSource = kernelCode.c_str();
-    size_t kernelSourceSize = kernelCode.size();
-
-    program = clCreateProgramWithSource(context, 1, &kernelSource, &kernelSourceSize, nullptr);
-    cl_int buildStatus = clBuildProgram(program, 1, &device, nullptr, nullptr, nullptr);
-
-    if (buildStatus != CL_SUCCESS) {
-        char buildLog[2048];
-        clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, sizeof(buildLog), buildLog, nullptr);
-        std::cerr << "OpenCL Build Error: " << buildLog << std::endl;
-        exit(1);
+    cl_int err;
+    static bool clfft_initialized = false;
+    if (!clfft_initialized) {
+        clfftSetupData fftSetup;
+        clfftInitSetupData(&fftSetup);
+        checkError(clfftSetup(&fftSetup), "clfftSetup");
+        clfft_initialized = true;
     }
 
-    // Create buffers for input and output (example: 256x256 complex FFT)
-    inputBuffer = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(float) * 256 * 256, nullptr, nullptr);
-    outputBuffer = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(float) * 256 * 256, nullptr, nullptr);
+    cl_platform_id platform;
+    checkError(clGetPlatformIDs(1, &platform, nullptr), "clGetPlatformIDs");
 
-    // Create kernel for FFT (this would need to be defined in your OpenCL program)
-    fftKernel = clCreateKernel(program, "inverse_fft_kernel", nullptr);
+    cl_device_id device;
+    checkError(clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 1, &device, nullptr), "clGetDeviceIDs");
+
+    context = clCreateContext(nullptr, 1, &device, nullptr, nullptr, &err);
+    checkError(err, "clCreateContext");
+
+    queue = clCreateCommandQueue(context, device, 0, &err);
+    checkError(err, "clCreateCommandQueue");
+
+    // Create FFT plan
+    size_t fftDims[2] = {256, 256};
+    checkError(clfftCreateDefaultPlan(&fftPlan, context, CLFFT_2D, fftDims), "clfftCreateDefaultPlan");
+    checkError(clfftSetPlanPrecision(fftPlan, CLFFT_SINGLE), "clfftSetPlanPrecision");
+    checkError(clfftSetLayout(fftPlan, CLFFT_COMPLEX_INTERLEAVED, CLFFT_COMPLEX_INTERLEAVED), "clfftSetLayout");
+    checkError(clfftSetResultLocation(fftPlan, CLFFT_OUTOFPLACE), "clfftSetResultLocation");
+    checkError(clfftBakePlan(fftPlan, 1, &queue, nullptr, nullptr), "clfftBakePlan");
+
+    inputBuffer = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(cl_float2) * 256 * 256, nullptr, &err);
+    checkError(err, "clCreateBuffer (input)");
+
+    outputBuffer = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(cl_float2) * 256 * 256, nullptr, &err);
+    checkError(err, "clCreateBuffer (output)");
+
+    // Initialize a periodic sine wave input
+    std::vector<cl_float2> inputData(256 * 256);
+    size_t N = 256;
+    float frequency = 5.0f;  // Example frequency
+
+    for (size_t y = 0; y < N; y++) {
+        for (size_t x = 0; x < N; x++) {
+            size_t index = y * N + x;
+            float phase = 2.0f * M_PI * frequency * x / N;
+            inputData[index].x = 100.0f * sin(phase);  // Real part
+            inputData[index].y = 0.0f;        // Imaginary part
+        }
+    }
+
+    // Upload input data to GPU
+    checkError(clEnqueueWriteBuffer(queue, inputBuffer, CL_TRUE, 0, sizeof(cl_float2) * 256 * 256, inputData.data(), 0, nullptr, nullptr), "clEnqueueWriteBuffer");
 }
+
+void OpenCLFFT::performFFT() {
+    cl_int err;
+    std::cout << "Performing FFT...\n";
+
+    // Execute Forward FFT
+    err = clfftEnqueueTransform(fftPlan, CLFFT_FORWARD, 1, &queue, 0, nullptr, nullptr, &inputBuffer, &outputBuffer, nullptr);
+    checkError(err, "clfftEnqueueTransform (Forward FFT)");
+
+    checkError(clFinish(queue), "clFinish");
+
+    // Read and print first 5 values of FFT output
+    std::vector<cl_float2> outputData(256 * 256);
+    checkError(clEnqueueReadBuffer(queue, outputBuffer, CL_TRUE, 0, outputData.size() * sizeof(cl_float2), outputData.data(), 0, nullptr, nullptr), "clEnqueueReadBuffer");
+
+    std::cout << "FFT Output (first 5 values):\n";
+    for (int i = 0; i < 10; i++) {
+        std::cout << outputData[i].x << " + " << outputData[i].y << "i\n";
+    }
+
+}
+
 
 void OpenCLFFT::performIFFT() {
-    // Set arguments for the OpenCL kernel (e.g., input/output buffers, other params)
-    clSetKernelArg(fftKernel, 0, sizeof(cl_mem), &inputBuffer);
-    clSetKernelArg(fftKernel, 1, sizeof(cl_mem), &outputBuffer);
+    cl_int err;
+    std::cout << "Performing IFFT...\n";
 
-    // Execute the kernel with appropriate work group sizes
-    size_t globalWorkSize[] = { 256, 256 };  // Global work size
-    size_t localWorkSize[] = { 16, 16 };     // Local work size
+    // Execute IFFT
+    err = clfftEnqueueTransform(fftPlan, CLFFT_BACKWARD, 1, &queue, 0, nullptr, nullptr, &outputBuffer, &inputBuffer, nullptr);
+    checkError(err, "clfftEnqueueTransform (Inverse FFT)");
 
-    clEnqueueNDRangeKernel(queue, fftKernel, 2, nullptr, globalWorkSize, localWorkSize, 0, nullptr, nullptr);
-    clFinish(queue);  // Wait for completion
+    checkError(clFinish(queue), "clFinish");
+
+    // Read and normalize output data
+    std::vector<cl_float2> outputData(256 * 256);
+    checkError(clEnqueueReadBuffer(queue, inputBuffer, CL_TRUE, 0, outputData.size() * sizeof(cl_float2), outputData.data(), 0, nullptr, nullptr), "clEnqueueReadBuffer");
+
+    // Normalize
+    size_t N = 256 * 256;
+    for (size_t i = 0; i < outputData.size(); i++) {
+        outputData[i].x /= N;
+        outputData[i].y /= N;
+    }
+
+    // Print first 5 values
+    std::cout << "IFFT Output (first 5 values):\n";
+    for (int i = 0; i < 5; i++) {
+        std::cout << outputData[i].x << " + " << outputData[i].y << "i\n";
+    }
 }
+
+
+

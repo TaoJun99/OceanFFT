@@ -255,6 +255,15 @@ CODE_COVERAGE:BOOL=OFF
 //The directory containing a CMake configuration file for FFTW.
 FFTW_DIR:PATH=FFTW_DIR-NOTFOUND
 
+//FFTW dynamic library
+FFTW_DOUBLE_PRECISION_LIBRARIES:FILEPATH=/opt/homebrew/lib/libfftw3.dylib
+
+//Path to a file.
+FFTW_INCLUDE_DIRS:PATH=/opt/homebrew/include
+
+//FFTW dynamic library
+FFTW_SINGLE_PRECISION_LIBRARIES:FILEPATH=/opt/homebrew/lib/libfftw3f.dylib
+
 //The directory containing a CMake configuration file for GLEW.
 GLEW_DIR:PATH=/opt/homebrew/lib/cmake/glew
 
@@ -413,7 +422,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=1
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=6
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP
@@ -456,8 +465,16 @@ CMAKE_STRIP-ADVANCED:INTERNAL=1
 CMAKE_UNAME:INTERNAL=/usr/bin/uname
 //ADVANCED property for variable: CMAKE_VERBOSE_MAKEFILE
 CMAKE_VERBOSE_MAKEFILE-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: FFTW_DOUBLE_PRECISION_LIBRARIES
+FFTW_DOUBLE_PRECISION_LIBRARIES-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: FFTW_INCLUDE_DIRS
+FFTW_INCLUDE_DIRS-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: FFTW_SINGLE_PRECISION_LIBRARIES
+FFTW_SINGLE_PRECISION_LIBRARIES-ADVANCED:INTERNAL=1
 //Details about finding Boost
 FIND_PACKAGE_MESSAGE_DETAILS_Boost:INTERNAL=[/opt/homebrew/lib/cmake/Boost-1.87.0/BoostConfig.cmake][cfound components: program_options ][v1.87.0(1.33.0)]
+//Details about finding FFTW
+FIND_PACKAGE_MESSAGE_DETAILS_FFTW:INTERNAL=[/opt/homebrew/lib/libfftw3f.dylib;/opt/homebrew/lib/libfftw3.dylib][/opt/homebrew/include][v()]
 //Details about finding GLEW
 FIND_PACKAGE_MESSAGE_DETAILS_GLEW:INTERNAL=[/opt/homebrew/lib/cmake/glew/glew-config.cmake][v()]
 //Details about finding OpenCL

@@ -1,0 +1,60 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"install"
+		],
+		"files" : 
+		[
+			"clFFT/src/statTimer/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 78,
+				"parent" : 0
+			}
+		]
+	},
+	"installers" : 
+	[
+		{
+			"backtrace" : 1,
+			"component" : "Unspecified",
+			"destination" : "lib",
+			"paths" : 
+			[
+				"clFFT/src/statTimer/libStatTimer.2.14.0.dylib",
+				"clFFT/src/statTimer/libStatTimer.2.dylib"
+			],
+			"targetId" : "StatTimer::@25069e2164681c52f830",
+			"targetIndex" : 1,
+			"targetInstallNamelink" : "skip",
+			"type" : "target"
+		},
+		{
+			"backtrace" : 1,
+			"component" : "Unspecified",
+			"destination" : "lib",
+			"paths" : 
+			[
+				"clFFT/src/statTimer/libStatTimer.dylib"
+			],
+			"targetId" : "StatTimer::@25069e2164681c52f830",
+			"targetIndex" : 1,
+			"targetInstallNamelink" : "only",
+			"type" : "target"
+		}
+	],
+	"paths" : 
+	{
+		"build" : "clFFT/src/statTimer",
+		"source" : "clFFT/src/statTimer"
+	}
+}
