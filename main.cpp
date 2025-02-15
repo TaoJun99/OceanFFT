@@ -11,7 +11,7 @@
 
 
 GLuint waterVAO, waterVBO, waterEBO, waterShader;
-GLuint projectionLoc, viewLoc, modelLoc;
+//GLuint projectionLoc, viewLoc, modelLoc;
 glm::mat4 projection, view;
 glm::vec3 cameraPos = glm::vec3(0.0f, 1.0f, 2.5f);
 float cameraWidth = 800.0f;
@@ -20,6 +20,8 @@ Camera camera(cameraWidth, cameraHeight, cameraPos);
 int waterPlaneIndexCount;
 GLuint oceanHeightTexture;
 GLuint fftTexture;
+GLuint ifftTexture;
+GLuint quadVAO, quadVBO, quadEBO;
 
 GLuint fourierShader;
 
@@ -29,7 +31,7 @@ OpenCLFFT fftProcessor;
 
 
 // Grid size
-const int gridSize = 1000; // Number of segments in each direction
+const int gridSize = 2048; // Number of segments in each direction
 const float size = 25.0f;  // Size of the plane
 
 float quadVertices[] = {
@@ -137,7 +139,6 @@ void setupWater() {
 
     generatePlane(&vertices, &indices, &waterPlaneIndexCount);
 
-    GLuint VAO, VBO, EBO;
     glGenVertexArrays(1, &waterVAO);
     glGenBuffers(1, &waterVBO);
     glGenBuffers(1, &waterEBO);
@@ -181,6 +182,7 @@ void drawWater() {
 //    GLuint lightDiffuseLoc = glGetUniformLocation(waterShader, "LightDiffuse");
 //    GLuint lightSpecularLoc = glGetUniformLocation(waterShader, "LightSpecular");
     GLuint textureLoc = glGetUniformLocation(waterShader, "inputTexture");
+    GLuint sizeLoc = glGetUniformLocation(waterShader, "size");
 
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
@@ -190,14 +192,17 @@ void drawWater() {
 //    glUniform4f(lightAmbientLoc, lightAmbient[0], lightAmbient[1], lightAmbient[2], lightAmbient[3]);
 //    glUniform4f(lightDiffuseLoc, lightDiffuse[0], lightDiffuse[1], lightDiffuse[2], lightDiffuse[3]);
 //    glUniform4f(lightSpecularLoc, lightSpecular[0], lightSpecular[1], lightSpecular[2], lightSpecular[3]);
-    glUniform1i(textureLoc, 1);
-
-
+    glUniform1i(textureLoc, 2);
+    glUniform1f(sizeLoc, size);
 
     glBindVertexArray(waterVAO);
 //    glBindTexture(GL_TEXTURE_CUBE_MAP, skyBoxtid);
     glDrawElements(GL_TRIANGLES, waterPlaneIndexCount, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
+
+//    glBindVertexArray(quadVAO);
+//    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+//    glBindVertexArray(0);
 
 }
 
@@ -222,7 +227,7 @@ void computeFourier() {
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fftTexture, 0);
 
-    glBindVertexArray(waterVAO);
+    glBindVertexArray(quadVAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 
@@ -274,20 +279,21 @@ int main() {
 
     // Load and compile shaders
     waterShader = createShaderProgram("../shader.vert", "../shader.frag");
-    fourierShader = createShaderProgram("../shader.vert", "../fourierShader.frag");
+//    waterShader = createShaderProgram("../fourierShader.vert", "../temp.frag"); // texture
+    fourierShader = createShaderProgram("../fourierShader.vert", "../fourierShader.frag");
 
-    GLuint VAO, VBO, EBO;
-    // Create VAO, VBO, EBO
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
 
-    glBindVertexArray(VAO);
+    // Create quadVAO, quadVBO, quadEBO
+    glGenVertexArrays(1, &quadVAO);
+    glGenBuffers(1, &quadVBO);
+    glGenBuffers(1, &quadEBO);
 
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBindVertexArray(quadVAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, quadEBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(quadIndices), quadIndices, GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
@@ -310,6 +316,13 @@ int main() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+    glActiveTexture(GL_TEXTURE2);
+    glGenTextures(1, &ifftTexture);
+    glBindTexture(GL_TEXTURE_2D, ifftTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, gridSize, gridSize, 0, GL_RG, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
     // Create framebuffer
     glGenFramebuffers(1, &framebuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
@@ -326,9 +339,26 @@ int main() {
     setupWater(); // Create vertices for the water height plane
     computeFourier();
 
-    fftProcessor.setup();
-    fftProcessor.performFFT();
-    fftProcessor.performIFFT();  // Execute the inverse FFT
+    fftProcessor.setup(gridSize);
+
+
+// Step 1: Copy data from OpenGL texture to a structure suited for FFT
+    GLfloat* textureData = new GLfloat[gridSize * gridSize * 2]; // Complex numbers (real + imaginary)
+    glBindTexture(GL_TEXTURE_2D, fftTexture);
+    glGetTexImage(GL_TEXTURE_2D, 0, GL_RG, GL_FLOAT, textureData);  // Read the data from OpenGL texture
+
+
+// Step 2: Process IFFT (Inverse FFT)
+    GLfloat* ifftData = fftProcessor.performIFFTFromOpenGLTexture(textureData, gridSize);
+
+// Step 3: Copy processed data back to OpenGL texture (ifftTexture)
+    glBindTexture(GL_TEXTURE_2D, ifftTexture);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, gridSize, gridSize, GL_RG, GL_FLOAT, ifftData);  // Update the ifftTexture with processed data
+
+// Clean up
+    delete[] textureData;
+    delete[] ifftData;  // Only if ifftData was dynamically allocated
+
 
     while (!glfwWindowShouldClose(window)) {
         // Clear screen and depth buffer
@@ -338,7 +368,7 @@ int main() {
         view = camera.getViewMatrix();
         projection = camera.getProjMatrix(70.0f, 0.1f, 100.0f);
 
-        // Use shader program and bind VAO
+        // Use shader program and bind quadVAO
         glDisable(GL_DEPTH_TEST);
 //        drawSkybox();
         glEnable(GL_DEPTH_TEST);

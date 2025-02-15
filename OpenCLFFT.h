@@ -3,16 +3,18 @@
 
 #include <OpenCL/cl.h>
 #include <clFFT.h>
+#include <GL/glew.h>
+#include <OpenCL/cl_gl.h>
 
 class OpenCLFFT {
 public:
     OpenCLFFT();
     ~OpenCLFFT();
 
-    void setup();
+    void setup(size_t gridSize);
     void performFFT();
     void performIFFT();
-
+    GLfloat* performIFFTFromOpenGLTexture(GLfloat* textureData, size_t gridSize);
 private:
     cl_context context;
     cl_command_queue queue;
