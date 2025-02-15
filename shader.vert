@@ -15,7 +15,9 @@ void main() {
     texCoords = (aPos.xz + size / 2) / size;
     vec2 tex = (aPos.xz + size / 2) / size;
     float height = length(texture(inputTexture, tex).rg);
-    vec3 position = vec3(aPos.x, texture(inputTexture, tex).x , aPos.z);
+    float scale = 2.0;
+    height *= scale;
+    vec3 position = vec3(aPos.x, height , aPos.z);
     gl_Position = projection * view * model * vec4(position, 1.0);
 
 }

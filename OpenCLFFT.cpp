@@ -259,8 +259,13 @@ GLfloat* OpenCLFFT::performIFFTFromOpenGLTexture(GLfloat* textureData, size_t gr
     GLfloat* outputData = new GLfloat[gridSize * gridSize * 2]; // Each entry has two components (real and imaginary)
 
     for (size_t i = 0; i < gridSize * gridSize; ++i) {
-        outputData[2 * i] = ifftData[i].x * 10000;   // real part
+        outputData[2 * i] = ifftData[i].x;   // real part
         outputData[2 * i + 1] = ifftData[i].y; // imaginary part
+    }
+
+// Normalize the values to the range [0, 1]
+    for (int i = 0; i < gridSize * gridSize * 2; ++i) {
+        outputData[i] = (outputData[i] - minVal) / (maxVal - minVal);
     }
 
     // Step 7: Clean up OpenCL buffers

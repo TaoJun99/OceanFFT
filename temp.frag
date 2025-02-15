@@ -16,9 +16,9 @@ void main() {
         float imagPart = complexValue.y;
 
         // Display the magnitude of the complex number
-        float magnitude = length(complexValue) * 100000;
+        float magnitude = length(complexValue);
 //        float magnitude = realPart * 1000;
 
-        fragColor = vec4(magnitude, magnitude, magnitude, 1.0);
+        fragColor = vec4(magnitude, 0.0, 0.0, 1.0);
 
 }
