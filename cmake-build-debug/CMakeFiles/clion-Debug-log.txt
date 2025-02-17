@@ -1,5 +1,4 @@
 /Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/Applications/CLion.app/Contents/bin/ninja/mac/ninja -G Ninja -S /Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT -B /Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/cmake-build-debug
--- CMAKE_SOURCE_DIR: /Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT
 -- UNICODE feature disabled on linux
 -- 64bit build - FIND_LIBRARY_USE_LIB64_PATHS TRUE
 -- Boost_PROGRAM_OPTIONS_LIBRARY: Boost::program_options

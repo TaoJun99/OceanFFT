@@ -3,30 +3,36 @@ project(OceanFFT)
 
 set(CMAKE_CXX_STANDARD 17)
 
+# Set macOS deployment target to 11.0 to ensure compatibility with MPSImageFFT
+set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0")
+
+# File globbing for source files
 file(GLOB SOURCE_FILES main.cpp shader.frag shader.vert)
 
+# Add executable and source files
 add_executable(OceanFFT ${SOURCE_FILES}
         Camera.cpp
         Camera.h
         OpenCLFFT.cpp
         OpenCLFFT.h
+        IFFT.cpp
+        IFFT.h
 )
 
 # Find OpenCL
 if(APPLE)
+    # Link OpenCL and Metal framework for macOS (Apple platform)
     target_link_libraries(OceanFFT PRIVATE "-framework OpenCL")
+    target_link_libraries(OceanFFT PRIVATE "-framework Metal")
+    target_link_libraries(OceanFFT PRIVATE "-framework MetalPerformanceShaders")
+    # Link the Accelerate framework
+    target_link_libraries(OceanFFT PRIVATE "-framework Accelerate")
 else()
     find_package(OpenCL REQUIRED)
     target_link_libraries(OceanFFT PRIVATE ${OpenCL_LIBRARIES})
 endif()
 
-message(STATUS "CMAKE_SOURCE_DIR: ${CMAKE_SOURCE_DIR}")
-
-
-#set(CMAKE_BUILD_RPATH "${CMAKE_SOURCE_DIR}/clFFT/src/library")
-#set(CMAKE_INSTALL_RPATH "${CMAKE_SOURCE_DIR}/clFFT/src/library")
-
-
+# Add clFFT subdirectory and libraries
 add_subdirectory(clFFT/src)
 include_directories(${CMAKE_SOURCE_DIR}/clFFT/src/include)
 link_directories(${CMAKE_SOURCE_DIR}/clFFT/src/library)
@@ -46,7 +52,12 @@ find_package(glm REQUIRED)
 target_include_directories(OceanFFT PRIVATE ${GLM_INCLUDE_DIRS})
 
 # Link OpenGL
-target_link_libraries(OceanFFT PRIVATE ${OPENGL_gl_LIBRARY})
+find_package(OpenGL REQUIRED)
+target_link_libraries(OceanFFT PRIVATE OpenGL::GL)
+
+# Additional necessary macOS system libraries or dependencies can be added here if needed.
+
+
 
 #target_include_directories(Test PRIVATE ${CMAKE_SOURCE_DIR}/include)
 #target_link_directories(Test PRIVATE ${CMAKE_SOURCE_DIR}/include)

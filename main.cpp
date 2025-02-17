@@ -7,13 +7,14 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "Camera.h"
 #include "OpenCLFFT.h"
+#include "IFFT.h"
 #include <clFFT.h>
 
 
 GLuint waterVAO, waterVBO, waterEBO, waterShader;
 //GLuint projectionLoc, viewLoc, modelLoc;
 glm::mat4 projection, view;
-glm::vec3 cameraPos = glm::vec3(0.0f, 1.0f, 2.5f);
+glm::vec3 cameraPos = glm::vec3(0.0f, 2.0f, 2.5f);
 float cameraWidth = 800.0f;
 float cameraHeight = 600.0f;
 Camera camera(cameraWidth, cameraHeight, cameraPos);
@@ -21,17 +22,20 @@ int waterPlaneIndexCount;
 GLuint oceanHeightTexture;
 GLuint fftTexture;
 GLuint ifftTexture;
+GLuint fourierHeightTexture;
 GLuint quadVAO, quadVBO, quadEBO;
 
-GLuint fourierShader;
+GLuint computeFourierShader;
+GLuint updateFourierShader;
 
 GLuint framebuffer;
 
 OpenCLFFT fftProcessor;
+IFFT ifftClass;
 
 
 // Grid size
-const int gridSize = 2048; // Number of segments in each direction
+const int gridSize = 1024; // Number of segments in each direction
 const float size = 25.0f;  // Size of the plane
 
 float quadVertices[] = {
@@ -176,7 +180,7 @@ void drawWater() {
     GLuint modelLoc = glGetUniformLocation(waterShader, "model");
     GLuint viewLoc = glGetUniformLocation(waterShader, "view");
     GLuint projectionLoc = glGetUniformLocation(waterShader, "projection");
-//    GLuint timeLoc = glGetUniformLocation(waterShader, "time");
+    GLuint timeLoc = glGetUniformLocation(waterShader, "time");
 //    GLuint lightPosLoc = glGetUniformLocation(waterShader, "LightPosition");
 //    GLuint lightAmbientLoc = glGetUniformLocation(waterShader, "LightAmbient");
 //    GLuint lightDiffuseLoc = glGetUniformLocation(waterShader, "LightDiffuse");
@@ -187,7 +191,7 @@ void drawWater() {
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
     glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
-//    glUniform1f(timeLoc, currentTime);  // Pass current time to shader
+    glUniform1f(timeLoc, currentTime);  // Pass current time to shader
 //    glUniform4f(lightPosLoc, lightPosition[0], lightPosition[1], lightPosition[2], lightPosition[3]);
 //    glUniform4f(lightAmbientLoc, lightAmbient[0], lightAmbient[1], lightAmbient[2], lightAmbient[3]);
 //    glUniform4f(lightDiffuseLoc, lightDiffuse[0], lightDiffuse[1], lightDiffuse[2], lightDiffuse[3]);
@@ -207,14 +211,14 @@ void drawWater() {
 }
 
 void computeFourier() {
-    glUseProgram(fourierShader);
+    glUseProgram(computeFourierShader);
 
-    GLuint alphaLoc = glGetUniformLocation(fourierShader, "alpha");
-    GLuint gLoc = glGetUniformLocation(fourierShader, "g");
-    GLuint k_pLoc = glGetUniformLocation(fourierShader, "k_p");
-    GLuint gammaLoc = glGetUniformLocation(fourierShader, "gamma");
-    GLuint NLoc = glGetUniformLocation(fourierShader, "N");
-    GLuint LLoc = glGetUniformLocation(fourierShader, "L");
+    GLuint alphaLoc = glGetUniformLocation(computeFourierShader, "alpha");
+    GLuint gLoc = glGetUniformLocation(computeFourierShader, "g");
+    GLuint k_pLoc = glGetUniformLocation(computeFourierShader, "k_p");
+    GLuint gammaLoc = glGetUniformLocation(computeFourierShader, "gamma");
+    GLuint NLoc = glGetUniformLocation(computeFourierShader, "N");
+    GLuint LLoc = glGetUniformLocation(computeFourierShader, "L");
 
     glUniform1f(alphaLoc, 0.0081);
     glUniform1f(gLoc, 9.81);
@@ -233,6 +237,56 @@ void computeFourier() {
 
     // Unbind the framebuffer
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void updateFourier() {
+    glUseProgram(updateFourierShader);
+
+    GLuint timeLoc = glGetUniformLocation(updateFourierShader, "time");
+    GLuint fftTextureLoc = glGetUniformLocation(updateFourierShader, "fftTexture");
+    GLuint NLoc = glGetUniformLocation(updateFourierShader, "N");
+    GLuint LLoc = glGetUniformLocation(updateFourierShader, "L");
+
+
+    float currentTime = glfwGetTime();
+    glUniform1f(timeLoc, currentTime);
+    glUniform1i(fftTextureLoc, 1);
+    glUniform1f(NLoc, gridSize);
+    glUniform1f(LLoc, size);
+
+    glViewport(0, 0, gridSize, gridSize);
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fourierHeightTexture, 0);
+
+    glBindVertexArray(quadVAO);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
+    // Unbind the framebuffer
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void ifft() {
+//    fftProcessor.setup(gridSize);
+
+
+// Step 1: Copy data from OpenGL texture to a structure suited for FFT
+    GLfloat* textureData = new GLfloat[gridSize * gridSize * 2]; // Complex numbers (real + imaginary)
+    glBindTexture(GL_TEXTURE_2D, fourierHeightTexture);
+    glGetTexImage(GL_TEXTURE_2D, 0, GL_RG, GL_FLOAT, textureData);  // Read the data from OpenGL texture
+
+
+// Step 2: Process IFFT (Inverse FFT)
+//    GLfloat* ifftData = fftProcessor.performIFFTFromOpenGLTexture(textureData, gridSize);
+    std::vector<GLfloat> ifftData = ifftClass.performIFFTFromTextureData(textureData, gridSize);
+
+// Step 3: Copy processed data back to OpenGL texture (ifftTexture)
+    glBindTexture(GL_TEXTURE_2D, ifftTexture);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, gridSize, gridSize, GL_RG, GL_FLOAT, ifftData.data());  // Update the ifftTexture with processed data
+
+// Clean up
+    delete[] textureData;
+//    delete[] ifftData;  // Only if ifftData was dynamically allocated
 }
 
 
@@ -279,8 +333,9 @@ int main() {
 
     // Load and compile shaders
     waterShader = createShaderProgram("../shader.vert", "../shader.frag");
-//    waterShader = createShaderProgram("../fourierShader.vert", "../temp.frag"); // texture
-    fourierShader = createShaderProgram("../fourierShader.vert", "../fourierShader.frag");
+//    waterShader = createShaderProgram("../fullScreenQuad.vert", "../temp.frag"); // texture
+    computeFourierShader = createShaderProgram("../fullScreenQuad.vert", "../computeFourier.frag");
+    updateFourierShader = createShaderProgram("../fullScreenQuad.vert", "../updateFourier.frag");
 
 
     // Create quadVAO, quadVBO, quadEBO
@@ -323,6 +378,13 @@ int main() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+    glActiveTexture(GL_TEXTURE3);
+    glGenTextures(1, &fourierHeightTexture);
+    glBindTexture(GL_TEXTURE_2D, fourierHeightTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, gridSize, gridSize, 0, GL_RG, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
     // Create framebuffer
     glGenFramebuffers(1, &framebuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
@@ -339,25 +401,27 @@ int main() {
     setupWater(); // Create vertices for the water height plane
     computeFourier();
 
-    fftProcessor.setup(gridSize);
+//    fftProcessor.setup(gridSize);
 
 
 // Step 1: Copy data from OpenGL texture to a structure suited for FFT
-    GLfloat* textureData = new GLfloat[gridSize * gridSize * 2]; // Complex numbers (real + imaginary)
-    glBindTexture(GL_TEXTURE_2D, fftTexture);
-    glGetTexImage(GL_TEXTURE_2D, 0, GL_RG, GL_FLOAT, textureData);  // Read the data from OpenGL texture
+//    GLfloat* textureData = new GLfloat[gridSize * gridSize * 2]; // Complex numbers (real + imaginary)
+//    glBindTexture(GL_TEXTURE_2D, fftTexture);
+//    glGetTexImage(GL_TEXTURE_2D, 0, GL_RG, GL_FLOAT, textureData);  // Read the data from OpenGL texture
+//
+//
+//// Step 2: Process IFFT (Inverse FFT)
+//    GLfloat* ifftData = fftProcessor.performIFFTFromOpenGLTexture(textureData, gridSize);
+//
+//// Step 3: Copy processed data back to OpenGL texture (ifftTexture)
+//    glBindTexture(GL_TEXTURE_2D, ifftTexture);
+//    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, gridSize, gridSize, GL_RG, GL_FLOAT, ifftData);  // Update the ifftTexture with processed data
+//
+//// Clean up
+//    delete[] textureData;
+//    delete[] ifftData;  // Only if ifftData was dynamically allocated
 
-
-// Step 2: Process IFFT (Inverse FFT)
-    GLfloat* ifftData = fftProcessor.performIFFTFromOpenGLTexture(textureData, gridSize);
-
-// Step 3: Copy processed data back to OpenGL texture (ifftTexture)
-    glBindTexture(GL_TEXTURE_2D, ifftTexture);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, gridSize, gridSize, GL_RG, GL_FLOAT, ifftData);  // Update the ifftTexture with processed data
-
-// Clean up
-    delete[] textureData;
-    delete[] ifftData;  // Only if ifftData was dynamically allocated
+//    ifft();
 
 
     while (!glfwWindowShouldClose(window)) {
@@ -373,9 +437,13 @@ int main() {
 //        drawSkybox();
         glEnable(GL_DEPTH_TEST);
 
+        updateFourier();
+        ifft();
+
         int width, height;
         glfwGetFramebufferSize(window, &width, &height);
         glViewport(0, 0, width, height);
+
         drawWater();
 
 

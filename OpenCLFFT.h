@@ -18,8 +18,8 @@ public:
 private:
     cl_context context;
     cl_command_queue queue;
-    cl_mem inputBuffer;
-    cl_mem outputBuffer;
+//    cl_mem inputBuffer;
+//    cl_mem outputBuffer;
     clfftPlanHandle fftPlan;
 
     void cleanup();

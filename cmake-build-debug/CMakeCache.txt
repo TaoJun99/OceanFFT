@@ -273,6 +273,15 @@ GLEW_LIBRARY_DEBUG:FILEPATH=GLEW_LIBRARY_DEBUG-NOTFOUND
 //Path to a library.
 GLEW_LIBRARY_RELEASE:FILEPATH=GLEW_LIBRARY_RELEASE-NOTFOUND
 
+//Include for OpenGL on OS X
+OPENGL_INCLUDE_DIR:PATH=/Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenGL.framework
+
+//OpenGL library for OS X
+OPENGL_gl_LIBRARY:FILEPATH=/Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenGL.framework
+
+//GLU library for OS X (usually same as OpenGL library)
+OPENGL_glu_LIBRARY:FILEPATH=/Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenGL.framework
+
 //Value Computed by CMake
 OceanFFT_BINARY_DIR:STATIC=/Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/cmake-build-debug
 
@@ -479,6 +488,8 @@ FIND_PACKAGE_MESSAGE_DETAILS_FFTW:INTERNAL=[/opt/homebrew/lib/libfftw3f.dylib;/o
 FIND_PACKAGE_MESSAGE_DETAILS_GLEW:INTERNAL=[/opt/homebrew/lib/cmake/glew/glew-config.cmake][v()]
 //Details about finding OpenCL
 FIND_PACKAGE_MESSAGE_DETAILS_OpenCL:INTERNAL=[/Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenCL.framework][/Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenCL.framework][v1.2()]
+//Details about finding OpenGL
+FIND_PACKAGE_MESSAGE_DETAILS_OpenGL:INTERNAL=[/Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenGL.framework][/Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenGL.framework][c ][v()]
 //ADVANCED property for variable: GLEW_LIBRARY_DEBUG
 GLEW_LIBRARY_DEBUG-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: GLEW_LIBRARY_RELEASE
@@ -493,6 +504,12 @@ OPENCL_VERSION_2_1:INTERNAL=
 OPENCL_VERSION_2_2:INTERNAL=
 //Have symbol CL_VERSION_3_0
 OPENCL_VERSION_3_0:INTERNAL=
+//ADVANCED property for variable: OPENGL_INCLUDE_DIR
+OPENGL_INCLUDE_DIR-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: OPENGL_gl_LIBRARY
+OPENGL_gl_LIBRARY-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: OPENGL_glu_LIBRARY
+OPENGL_glu_LIBRARY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: OpenCL_INCLUDE_DIR
 OpenCL_INCLUDE_DIR-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: OpenCL_LIBRARY
