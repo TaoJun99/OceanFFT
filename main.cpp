@@ -9,6 +9,7 @@
 #include "OpenCLFFT.h"
 #include "IFFT.h"
 #include <clFFT.h>
+#include <Accelerate/Accelerate.h>
 
 
 GLuint waterVAO, waterVBO, waterEBO, waterShader;
@@ -27,16 +28,22 @@ GLuint quadVAO, quadVBO, quadEBO;
 
 GLuint computeFourierShader;
 GLuint updateFourierShader;
+GLuint rescaleHeightShader;
 
 GLuint framebuffer;
 
 OpenCLFFT fftProcessor;
 IFFT ifftClass;
 
+// Light info.
+const GLfloat lightAmbient[] = { 0.1f, 0.2f, 0.3f, 1.0f };
+const GLfloat lightDiffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+const GLfloat lightSpecular[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+const GLfloat lightPosition[4] = { 0.0f, 50.0f, -20.0f, 0.0f }; // Given in eye space
 
 // Grid size
-const int gridSize = 1024; // Number of segments in each direction
-const float size = 25.0f;  // Size of the plane
+const int gridSize = 2048; // Number of segments in each direction
+const float size = 20.0f;  // Size of the plane
 
 float quadVertices[] = {
         -1.0f, -1.0f,
@@ -175,29 +182,28 @@ void drawWater() {
     // Matrices
     glm::mat4 model = glm::mat4(1.0f);  // Identity matrix (no transformation)
 
-    float currentTime = glfwGetTime();
-
     GLuint modelLoc = glGetUniformLocation(waterShader, "model");
     GLuint viewLoc = glGetUniformLocation(waterShader, "view");
     GLuint projectionLoc = glGetUniformLocation(waterShader, "projection");
-    GLuint timeLoc = glGetUniformLocation(waterShader, "time");
-//    GLuint lightPosLoc = glGetUniformLocation(waterShader, "LightPosition");
-//    GLuint lightAmbientLoc = glGetUniformLocation(waterShader, "LightAmbient");
-//    GLuint lightDiffuseLoc = glGetUniformLocation(waterShader, "LightDiffuse");
-//    GLuint lightSpecularLoc = glGetUniformLocation(waterShader, "LightSpecular");
+    GLuint lightPosLoc = glGetUniformLocation(waterShader, "LightPosition");
+    GLuint lightAmbientLoc = glGetUniformLocation(waterShader, "LightAmbient");
+    GLuint lightDiffuseLoc = glGetUniformLocation(waterShader, "LightDiffuse");
+    GLuint lightSpecularLoc = glGetUniformLocation(waterShader, "LightSpecular");
     GLuint textureLoc = glGetUniformLocation(waterShader, "inputTexture");
     GLuint sizeLoc = glGetUniformLocation(waterShader, "size");
+    GLuint gridSizeLoc = glGetUniformLocation(waterShader, "gridSize");
 
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
     glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
-    glUniform1f(timeLoc, currentTime);  // Pass current time to shader
-//    glUniform4f(lightPosLoc, lightPosition[0], lightPosition[1], lightPosition[2], lightPosition[3]);
-//    glUniform4f(lightAmbientLoc, lightAmbient[0], lightAmbient[1], lightAmbient[2], lightAmbient[3]);
-//    glUniform4f(lightDiffuseLoc, lightDiffuse[0], lightDiffuse[1], lightDiffuse[2], lightDiffuse[3]);
-//    glUniform4f(lightSpecularLoc, lightSpecular[0], lightSpecular[1], lightSpecular[2], lightSpecular[3]);
-    glUniform1i(textureLoc, 2);
+
+    glUniform4f(lightPosLoc, lightPosition[0], lightPosition[1], lightPosition[2], lightPosition[3]);
+    glUniform4f(lightAmbientLoc, lightAmbient[0], lightAmbient[1], lightAmbient[2], lightAmbient[3]);
+    glUniform4f(lightDiffuseLoc, lightDiffuse[0], lightDiffuse[1], lightDiffuse[2], lightDiffuse[3]);
+    glUniform4f(lightSpecularLoc, lightSpecular[0], lightSpecular[1], lightSpecular[2], lightSpecular[3]);
+    glUniform1i(textureLoc, 0);
     glUniform1f(sizeLoc, size);
+    glUniform1i(gridSizeLoc, gridSize);
 
     glBindVertexArray(waterVAO);
 //    glBindTexture(GL_TEXTURE_CUBE_MAP, skyBoxtid);
@@ -267,8 +273,6 @@ void updateFourier() {
 }
 
 void ifft() {
-//    fftProcessor.setup(gridSize);
-
 
 // Step 1: Copy data from OpenGL texture to a structure suited for FFT
     GLfloat* textureData = new GLfloat[gridSize * gridSize * 2]; // Complex numbers (real + imaginary)
@@ -277,16 +281,40 @@ void ifft() {
 
 
 // Step 2: Process IFFT (Inverse FFT)
-//    GLfloat* ifftData = fftProcessor.performIFFTFromOpenGLTexture(textureData, gridSize);
-    std::vector<GLfloat> ifftData = ifftClass.performIFFTFromTextureData(textureData, gridSize);
+    GLfloat* ifftData = fftProcessor.performIFFTFromOpenGLTexture(textureData, gridSize);
+//    std::vector<GLfloat> ifftData = ifftClass.performIFFTFromTextureData(textureData, gridSize);
+
+    size_t totalSize = gridSize * gridSize * 2;
+
+    GLfloat minVal, maxVal;
+//    vDSP_minv(ifftData.data(), 1, &minVal, totalSize); // Find min
+//    vDSP_maxv(ifftData.data(), 1, &maxVal, totalSize); // Find max
+
+    vDSP_minv(ifftData, 1, &minVal, totalSize); // Find min
+    vDSP_maxv(ifftData, 1, &maxVal, totalSize); // Find max
 
 // Step 3: Copy processed data back to OpenGL texture (ifftTexture)
     glBindTexture(GL_TEXTURE_2D, ifftTexture);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, gridSize, gridSize, GL_RG, GL_FLOAT, ifftData.data());  // Update the ifftTexture with processed data
-
+//    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, gridSize, gridSize, GL_RG, GL_FLOAT, ifftData.data());  // Update the ifftTexture with processed data
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, gridSize, gridSize, GL_RG, GL_FLOAT, ifftData);
 // Clean up
     delete[] textureData;
-//    delete[] ifftData;  // Only if ifftData was dynamically allocated
+
+    glUseProgram(rescaleHeightShader);
+
+    GLuint ifftTextureLoc = glGetUniformLocation(rescaleHeightShader, "ifftTexture");
+    glUniform1i(ifftTextureLoc, 2);
+
+    glViewport(0, 0, gridSize, gridSize);
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, oceanHeightTexture, 0);
+
+    glBindVertexArray(quadVAO);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
+    // Unbind the framebuffer
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 
@@ -336,6 +364,7 @@ int main() {
 //    waterShader = createShaderProgram("../fullScreenQuad.vert", "../temp.frag"); // texture
     computeFourierShader = createShaderProgram("../fullScreenQuad.vert", "../computeFourier.frag");
     updateFourierShader = createShaderProgram("../fullScreenQuad.vert", "../updateFourier.frag");
+    rescaleHeightShader = createShaderProgram("../fullScreenQuad.vert", "../rescaleHeight.frag");
 
 
     // Create quadVAO, quadVBO, quadEBO
@@ -401,7 +430,7 @@ int main() {
     setupWater(); // Create vertices for the water height plane
     computeFourier();
 
-//    fftProcessor.setup(gridSize);
+    fftProcessor.setup(gridSize);
 
 
 // Step 1: Copy data from OpenGL texture to a structure suited for FFT
@@ -445,7 +474,6 @@ int main() {
         glViewport(0, 0, width, height);
 
         drawWater();
-
 
         // Swap front and back buffers
         glfwSwapBuffers(window);

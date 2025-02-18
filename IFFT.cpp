@@ -64,31 +64,26 @@ std::vector<GLfloat> IFFT::performIFFTFromTextureData(GLfloat* textureData, size
     vDSP_vsmul(outputData.data(), 1, &normalizationFactor, outputData.data(), 1, gridSize * gridSize * 2);
 
     // Normalize results between 0 and 1 if necessary
-    GLfloat minVal = std::numeric_limits<GLfloat>::max();
-    GLfloat maxVal = std::numeric_limits<GLfloat>::lowest();
+//    size_t totalSize = gridSize * gridSize * 2;
+//
+//    GLfloat minVal, maxVal;
+//    vDSP_minv(outputData.data(), 1, &minVal, totalSize); // Find min
+//    vDSP_maxv(outputData.data(), 1, &maxVal, totalSize); // Find max
+//
+//    GLfloat range = maxVal - minVal;
+//    if (range > 0.0f) {
+//        GLfloat scale = 1.0f / range;
+//        GLfloat negMin = -minVal; // Offset by min
+//        vDSP_vsmsa(outputData.data(), 1, &scale, &negMin, outputData.data(), 1, totalSize);
+//    }
 
-    for (size_t i = 0; i < gridSize * gridSize * 2; ++i) {
-        minVal = std::min(minVal, outputData[i]);
-        maxVal = std::max(maxVal, outputData[i]);
-    }
 
-    GLfloat range = maxVal - minVal;
-    if (range > 0.0f) {
-        for (size_t i = 0; i < gridSize * gridSize * 2; ++i) {
-            outputData[i] = (outputData[i] - minVal) / range;  // Normalize to [0, 1]
-        }
-    }
 
     // Print a few values of outputData (first 10 values)
 //    std::cout << "First 10 values of outputData:" << std::endl;
 //    for (size_t i = 0; i < std::min<size_t>(10, outputData.size()); ++i) {
 //        std::cout << "outputData[" << i << "] = " << outputData[i] << std::endl;
 //    }
-//    std::cout << "Texture Data (First 10 values): " << std::endl;
-//    for (size_t i = 0; i < 10 && i < gridSize * gridSize * 2; ++i) {
-//        std::cout << "After: textureData[" << i << "] = " << textureData[i] << std::endl;
-//    }
-
 
     // Clean up FFT setup
     vDSP_destroy_fftsetup(fftSetup);

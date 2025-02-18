@@ -45,11 +45,14 @@ void main() {
     //    int k_y = gridPos.y + N / 2;
 
 
-    int k_x = (gridPos.x < (N / 2)) ? gridPos.x : gridPos.x - N; // left to right: 0, +ve, -ve
-    int k_y = (gridPos.y < (N / 2)) ? -(gridPos.y + 1) : -(gridPos.y - N + 1); // top to bottom: 0, +ve, -ve
+//    int k_x = (gridPos.x < (N / 2)) ? gridPos.x : gridPos.x - N; // left to right: 0, +ve, -ve
+//    int k_y = (gridPos.y < (N / 2)) ? -(gridPos.y + 1) : -(gridPos.y - N + 1); // top to bottom: 0, +ve, -ve
 
 //    int k_x = gridPos.x - N / 2; // left to right: -ve, 0, +ve
 //    int k_y = gridPos.y - N / 2; // bottom to top: -ve, 0, +ve
+
+    int k_x = (gridPos.x < (N / 2)) ? gridPos.x : gridPos.x - N; // left to right: 0, +ve, -ve
+    int k_y = (gridPos.y < (N / 2)) ? gridPos.y : gridPos.y - N; // bottom to top: 0, +ve, -ve
 
     // Compute k magnitude |k| and scale it
     vec2 k = (2.0 * 3.14159265359 / L) * vec2(float(k_x), float(k_y));

@@ -97,20 +97,20 @@ GLfloat* OpenCLFFT::performIFFTFromOpenGLTexture(GLfloat* textureData, size_t gr
     checkError(err, "clEnqueueReadBuffer (output)");
 
     // Normalize results if necessary
-    GLfloat minVal = std::numeric_limits<GLfloat>::max();
-    GLfloat maxVal = std::numeric_limits<GLfloat>::lowest();
+//    GLfloat minVal = std::numeric_limits<GLfloat>::max();
+//    GLfloat maxVal = std::numeric_limits<GLfloat>::lowest();
+//
+//    for (size_t i = 0; i < gridSize * gridSize * 2; ++i) {
+//        minVal = std::min(minVal, ifftData[i]);
+//        maxVal = std::max(maxVal, ifftData[i]);
+//    }
 
-    for (size_t i = 0; i < gridSize * gridSize * 2; ++i) {
-        minVal = std::min(minVal, ifftData[i]);
-        maxVal = std::max(maxVal, ifftData[i]);
-    }
-
-    GLfloat range = maxVal - minVal;
-    if (range > 0.0f) {
-        for (size_t i = 0; i < gridSize * gridSize * 2; ++i) {
-            ifftData[i] = (ifftData[i] - minVal) / range;
-        }
-    }
+//    GLfloat range = maxVal - minVal;
+//    if (range > 0.0f) {
+//        for (size_t i = 0; i < gridSize * gridSize * 2; ++i) {
+//            ifftData[i] = (ifftData[i] - minVal) / range;
+//        }
+//    }
 
     // Step 7: Clean up OpenCL buffers
     err = clReleaseMemObject(inputClBuffer);
