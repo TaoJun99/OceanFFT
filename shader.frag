@@ -15,14 +15,27 @@ uniform mat4 projection;
 uniform int gridSize;
 uniform sampler2D inputTexture;
 
-//uniform samplerCube EnvMap;
+uniform samplerCube envMap;
 
 out vec4 fragColor;
 
-const vec4 k_a = vec4(0.5, 0.5, 0.5, 1.0);
-const vec4 k_d = vec4(0.1, 0.3, 0.5, 1.0);
-const vec4 k_s = vec4(1.0, 1.0, 1.0, 1.0);
-const float n = 50.0;
+//const vec4 k_a = vec4(0.5, 0.5, 0.5, 1.0);
+//const vec4 k_d = vec4(0.1, 0.3, 0.5, 1.0);
+//const vec4 k_s = vec4(1.0, 1.0, 1.0, 1.0);
+//const float n = 50.0;
+
+//const vec4 k_a = vec4(0.0, 0.1, 0.2, 1.0);  // Deep blue-green ambient reflection
+//const vec4 k_d = vec4(0.0, 0.3, 0.6, 1.0);  // Diffuse reflection with more blue
+//const vec4 k_s = vec4(0.8, 0.9, 1.0, 1.0);  // Slightly bluish specular highlights
+//const float n = 100.0;                      // Higher shininess for glossier reflections
+
+const vec4 k_a = vec4(0.3, 0.7, 0.8, 0.4);   // More transparent ambient
+const vec4 k_d = vec4(0.4, 0.7, 0.9, 0.3);   // Transparent diffuse
+const vec4 k_s = vec4(0.6, 0.8, 1.0, 0.3);   // Transparent specular
+const float n = 100.0;                        // Sharp reflections
+
+
+
 
 vec3 computeSurfaceNormal() {
     ivec2 texel = ivec2(floor(texCoords * float(gridSize - 1)));
@@ -71,10 +84,10 @@ void main() {
 
     // ENV MAPPING
     // Incident ray for environment mapping is view vector
-//    vec3 eyeReflectVec = reflect(viewVec, N);
-//    vec3 wcReflectVec = normalize(vec3(transpose(view) * vec4(eyeReflectVec, 0.0))); // Transform reflect vector to world space
-//    vec4 envColor = texture(EnvMap, wcReflectVec);
-//
+    vec3 eyeReflectVec = reflect(viewVec, N);
+    vec3 wcReflectVec = normalize(vec3(transpose(view) * vec4(eyeReflectVec, 0.0))); // Transform reflect vector to world space
+    vec4 envColor = texture(envMap, wcReflectVec);
+
     vec3 L = normalize(lightVec);  // Light direction
     vec3 V = normalize(viewVec);    // View direction
     vec3 H = normalize(L + V);      // Half-vector
@@ -86,10 +99,9 @@ void main() {
     float specularIntensity = pow(max(0.0, dot(H, N)), 16.0);
 
 
-//    fragColor = mix(envColor+k_s * specularIntensity,  + (LightAmbient * k_a) + (LightDiffuse * k_d * L_dot_N), 0.4);
-    fragColor = (LightAmbient * k_a) + (LightDiffuse * k_d * L_dot_N) + (LightSpecular * k_s * specularIntensity);
-//    fragColor = phongColor;
-    fragColor.a = 1.0;
-//    fragColor = vec4(0.0, 0.5, 0.5, 1.0);
+    fragColor = mix(envColor+k_s * specularIntensity,  + (LightAmbient * k_a) + (LightDiffuse * k_d * L_dot_N), 0.4);
+//    fragColor = (LightAmbient * k_a) + (LightDiffuse * k_d * L_dot_N) + (LightSpecular * k_s * specularIntensity);
+
+//    fragColor.a = 1.0;
 
 }

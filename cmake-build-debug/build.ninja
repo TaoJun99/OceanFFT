@@ -52,28 +52,28 @@ build cmake_object_order_depends_target_OceanFFT: phony || cmake_object_order_de
 build CMakeFiles/OceanFFT.dir/main.cpp.o: CXX_COMPILER__OceanFFT_unscanned_Debug /Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/main.cpp || cmake_object_order_depends_target_OceanFFT
   DEP_FILE = CMakeFiles/OceanFFT.dir/main.cpp.o.d
   FLAGS = -g -std=gnu++17 -arch arm64 -isysroot /Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk -mmacosx-version-min=11.0 -fcolor-diagnostics -F/Library/Developer/CommandLineTools/SDKs/MacOSX13.sdk/System/Library/Frameworks
-  INCLUDES = -I/Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/clFFT/src/include -I/Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/cmake-build-debug/clFFT/src/include -I/opt/homebrew/lib -isystem /opt/homebrew/include -iframework /Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks
+  INCLUDES = -I/Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/clFFT/src/include -I/Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/cmake-build-debug/clFFT/src/include -I/opt/homebrew/lib -I/Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/include -isystem /opt/homebrew/include -iframework /Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks
   OBJECT_DIR = CMakeFiles/OceanFFT.dir
   OBJECT_FILE_DIR = CMakeFiles/OceanFFT.dir
 
 build CMakeFiles/OceanFFT.dir/Camera.cpp.o: CXX_COMPILER__OceanFFT_unscanned_Debug /Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/Camera.cpp || cmake_object_order_depends_target_OceanFFT
   DEP_FILE = CMakeFiles/OceanFFT.dir/Camera.cpp.o.d
   FLAGS = -g -std=gnu++17 -arch arm64 -isysroot /Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk -mmacosx-version-min=11.0 -fcolor-diagnostics -F/Library/Developer/CommandLineTools/SDKs/MacOSX13.sdk/System/Library/Frameworks
-  INCLUDES = -I/Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/clFFT/src/include -I/Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/cmake-build-debug/clFFT/src/include -I/opt/homebrew/lib -isystem /opt/homebrew/include -iframework /Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks
+  INCLUDES = -I/Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/clFFT/src/include -I/Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/cmake-build-debug/clFFT/src/include -I/opt/homebrew/lib -I/Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/include -isystem /opt/homebrew/include -iframework /Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks
   OBJECT_DIR = CMakeFiles/OceanFFT.dir
   OBJECT_FILE_DIR = CMakeFiles/OceanFFT.dir
 
 build CMakeFiles/OceanFFT.dir/OpenCLFFT.cpp.o: CXX_COMPILER__OceanFFT_unscanned_Debug /Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/OpenCLFFT.cpp || cmake_object_order_depends_target_OceanFFT
   DEP_FILE = CMakeFiles/OceanFFT.dir/OpenCLFFT.cpp.o.d
   FLAGS = -g -std=gnu++17 -arch arm64 -isysroot /Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk -mmacosx-version-min=11.0 -fcolor-diagnostics -F/Library/Developer/CommandLineTools/SDKs/MacOSX13.sdk/System/Library/Frameworks
-  INCLUDES = -I/Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/clFFT/src/include -I/Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/cmake-build-debug/clFFT/src/include -I/opt/homebrew/lib -isystem /opt/homebrew/include -iframework /Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks
+  INCLUDES = -I/Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/clFFT/src/include -I/Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/cmake-build-debug/clFFT/src/include -I/opt/homebrew/lib -I/Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/include -isystem /opt/homebrew/include -iframework /Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks
   OBJECT_DIR = CMakeFiles/OceanFFT.dir
   OBJECT_FILE_DIR = CMakeFiles/OceanFFT.dir
 
 build CMakeFiles/OceanFFT.dir/IFFT.cpp.o: CXX_COMPILER__OceanFFT_unscanned_Debug /Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/IFFT.cpp || cmake_object_order_depends_target_OceanFFT
   DEP_FILE = CMakeFiles/OceanFFT.dir/IFFT.cpp.o.d
   FLAGS = -g -std=gnu++17 -arch arm64 -isysroot /Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk -mmacosx-version-min=11.0 -fcolor-diagnostics -F/Library/Developer/CommandLineTools/SDKs/MacOSX13.sdk/System/Library/Frameworks
-  INCLUDES = -I/Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/clFFT/src/include -I/Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/cmake-build-debug/clFFT/src/include -I/opt/homebrew/lib -isystem /opt/homebrew/include -iframework /Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks
+  INCLUDES = -I/Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/clFFT/src/include -I/Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/cmake-build-debug/clFFT/src/include -I/opt/homebrew/lib -I/Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/include -isystem /opt/homebrew/include -iframework /Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks
   OBJECT_DIR = CMakeFiles/OceanFFT.dir
   OBJECT_FILE_DIR = CMakeFiles/OceanFFT.dir
 
@@ -87,8 +87,8 @@ build CMakeFiles/OceanFFT.dir/IFFT.cpp.o: CXX_COMPILER__OceanFFT_unscanned_Debug
 
 build OceanFFT: CXX_EXECUTABLE_LINKER__OceanFFT_Debug CMakeFiles/OceanFFT.dir/main.cpp.o CMakeFiles/OceanFFT.dir/Camera.cpp.o CMakeFiles/OceanFFT.dir/OpenCLFFT.cpp.o CMakeFiles/OceanFFT.dir/IFFT.cpp.o | clFFT/src/library/libclFFT.2.14.0.dylib /opt/homebrew/lib/libglfw.3.3.dylib /opt/homebrew/lib/libGLEW.2.2.0.dylib /Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenGL.framework/OpenGL.tbd || clFFT/src/library/libclFFT.dylib clFFT/src/library/libclFFT.dylib
   FLAGS = -g -arch arm64 -isysroot /Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk -mmacosx-version-min=11.0
-  LINK_LIBRARIES = -Wl,-rpath,/opt/homebrew/lib  -framework OpenCL  -framework Metal  -framework MetalPerformanceShaders  -framework Accelerate  clFFT/src/library/libclFFT.2.14.0.dylib  /opt/homebrew/lib/libglfw.3.3.dylib  /opt/homebrew/lib/libGLEW.2.2.0.dylib  /Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenGL.framework/OpenGL.tbd  -Xlinker -framework -Xlinker OpenCL  -Xlinker -framework -Xlinker OpenGL
-  LINK_PATH = -F/Library/Developer/CommandLineTools/SDKs/MacOSX13.sdk/System/Library/Frameworks
+  LINK_LIBRARIES = -Wl,-rpath,/Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/include -Wl,-rpath,/opt/homebrew/lib  -framework OpenCL  -framework Metal  -framework MetalPerformanceShaders  -framework Accelerate  clFFT/src/library/libclFFT.2.14.0.dylib  /opt/homebrew/lib/libglfw.3.3.dylib  /opt/homebrew/lib/libGLEW.2.2.0.dylib  /Applications/Xcode_13.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenGL.framework/OpenGL.tbd  -Xlinker -framework -Xlinker OpenCL  -Xlinker -framework -Xlinker OpenGL
+  LINK_PATH = -F/Library/Developer/CommandLineTools/SDKs/MacOSX13.sdk/System/Library/Frameworks  -L/Users/zhengtaojun/Desktop/NUS/XFC4101/OceanFFT/include
   OBJECT_DIR = CMakeFiles/OceanFFT.dir
   POST_BUILD = :
   PRE_LINK = :

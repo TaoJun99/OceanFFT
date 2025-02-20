@@ -10,9 +10,13 @@
 #include "IFFT.h"
 #include <clFFT.h>
 #include <Accelerate/Accelerate.h>
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 
 GLuint waterVAO, waterVBO, waterEBO, waterShader;
+GLuint skyboxVAO, skyboxVBO, skyboxShader;
+GLuint skyBoxtid;
 //GLuint projectionLoc, viewLoc, modelLoc;
 glm::mat4 projection, view;
 glm::vec3 cameraPos = glm::vec3(0.0f, 2.0f, 2.5f);
@@ -39,11 +43,11 @@ IFFT ifftClass;
 const GLfloat lightAmbient[] = { 0.1f, 0.2f, 0.3f, 1.0f };
 const GLfloat lightDiffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 const GLfloat lightSpecular[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-const GLfloat lightPosition[4] = { 0.0f, 50.0f, -20.0f, 0.0f }; // Given in eye space
+const GLfloat lightPosition[4] = { 0.0f, 100.0f, -20.0f, 0.0f }; // Given in eye space
 
 // Grid size
 const int gridSize = 2048; // Number of segments in each direction
-const float size = 20.0f;  // Size of the plane
+const float size = 30.0f;  // Size of the plane
 
 float quadVertices[] = {
         -1.0f, -1.0f,
@@ -192,6 +196,8 @@ void drawWater() {
     GLuint textureLoc = glGetUniformLocation(waterShader, "inputTexture");
     GLuint sizeLoc = glGetUniformLocation(waterShader, "size");
     GLuint gridSizeLoc = glGetUniformLocation(waterShader, "gridSize");
+    GLuint envMapLoc = glGetUniformLocation(waterShader, "envMap");
+
 
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
@@ -204,9 +210,10 @@ void drawWater() {
     glUniform1i(textureLoc, 0);
     glUniform1f(sizeLoc, size);
     glUniform1i(gridSizeLoc, gridSize);
+    glUniform1i(envMapLoc, 4);
 
     glBindVertexArray(waterVAO);
-//    glBindTexture(GL_TEXTURE_CUBE_MAP, skyBoxtid);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, skyBoxtid);
     glDrawElements(GL_TRIANGLES, waterPlaneIndexCount, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 
@@ -317,6 +324,163 @@ void ifft() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+void setUpEnvMap() {
+    const int numImages = 6;
+    const GLenum texUnit = GL_TEXTURE4;
+
+    // Cubemap images' filenames.
+    const char *cubemapFile[numImages] = {
+            "../images/right.png", "../images/left.png",
+            "../images/top.png", "../images/bottom.png",
+            "../images/front.png", "../images/back.png"
+    };
+
+
+    GLuint target[numImages] = {
+            GL_TEXTURE_CUBE_MAP_POSITIVE_X, GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
+            GL_TEXTURE_CUBE_MAP_POSITIVE_Y, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
+            GL_TEXTURE_CUBE_MAP_POSITIVE_Z, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
+    };
+
+
+    glActiveTexture(texUnit);
+    glGenTextures(1, &skyBoxtid);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, skyBoxtid);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+
+    // Enable flipping of images vertically when read in.
+    // This is to follow OpenGL's image coordinate system, i.e. bottom-leftmost is (0, 0).
+//    stbi_set_flip_vertically_on_load(true);
+
+    // Read texture images from files.
+    for (int t = 0; t < numImages; t++) {
+
+        int imgWidth, imgHeight, numComponents;
+
+        GLubyte *imgData = stbi_load(cubemapFile[t], &imgWidth, &imgHeight, &numComponents, 0);
+
+        if (imgData == NULL) {
+            fprintf(stderr, "Error: Fail to read image file %s.\n", cubemapFile[t]);
+            exit(EXIT_FAILURE);
+        }
+        printf("%s (%d x %d, %d components)\n", cubemapFile[t], imgWidth, imgHeight, numComponents);
+
+        if (numComponents == 1) {
+            glTexImage2D(target[t], 0, GL_R8, imgWidth, imgHeight, 0,
+                         GL_RED, GL_UNSIGNED_BYTE, imgData);
+        }
+        else if (numComponents == 3) {
+            glTexImage2D(target[t], 0, GL_RGB8, imgWidth, imgHeight, 0,
+                         GL_RGB, GL_UNSIGNED_BYTE, imgData);
+        }
+        else if (numComponents == 4) {
+            glTexImage2D(target[t], 0, GL_RGBA8, imgWidth, imgHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, imgData);
+        }
+        else {
+            fprintf(stderr, "Error: Unexpected image format.\n");
+            exit(EXIT_FAILURE);
+        }
+
+        stbi_image_free(imgData);
+    }
+
+    glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+}
+
+const float skyBoxSize = 2.0f;
+
+void setupSkybox() {
+    // Define the vertices for a cube
+    float skyboxVertices[] = {
+            // Positions
+            -1.0f * skyBoxSize,  1.0f * skyBoxSize, -1.0f * skyBoxSize,
+            -1.0f * skyBoxSize, -1.0f * skyBoxSize, -1.0f * skyBoxSize,
+            1.0f * skyBoxSize, -1.0f * skyBoxSize, -1.0f * skyBoxSize,
+            1.0f * skyBoxSize, -1.0f * skyBoxSize, -1.0f * skyBoxSize,
+            1.0f * skyBoxSize,  1.0f * skyBoxSize, -1.0f * skyBoxSize,
+            -1.0f * skyBoxSize,  1.0f * skyBoxSize, -1.0f * skyBoxSize,
+
+            -1.0f * skyBoxSize, -1.0f * skyBoxSize,  1.0f * skyBoxSize,
+            -1.0f * skyBoxSize, -1.0f * skyBoxSize, -1.0f * skyBoxSize,
+            -1.0f * skyBoxSize,  1.0f * skyBoxSize, -1.0f * skyBoxSize,
+            -1.0f * skyBoxSize,  1.0f * skyBoxSize, -1.0f * skyBoxSize,
+            -1.0f * skyBoxSize,  1.0f * skyBoxSize,  1.0f * skyBoxSize,
+            -1.0f * skyBoxSize, -1.0f * skyBoxSize,  1.0f * skyBoxSize,
+
+            1.0f * skyBoxSize, -1.0f * skyBoxSize, -1.0f * skyBoxSize,
+            1.0f * skyBoxSize, -1.0f * skyBoxSize,  1.0f * skyBoxSize,
+            1.0f * skyBoxSize,  1.0f * skyBoxSize,  1.0f * skyBoxSize,
+            1.0f * skyBoxSize,  1.0f * skyBoxSize,  1.0f * skyBoxSize,
+            1.0f * skyBoxSize,  1.0f * skyBoxSize, -1.0f * skyBoxSize,
+            1.0f * skyBoxSize, -1.0f * skyBoxSize, -1.0f * skyBoxSize,
+
+            -1.0f * skyBoxSize, -1.0f * skyBoxSize,  1.0f * skyBoxSize,
+            -1.0f * skyBoxSize,  1.0f * skyBoxSize,  1.0f * skyBoxSize,
+            1.0f * skyBoxSize,  1.0f * skyBoxSize,  1.0f * skyBoxSize,
+            1.0f * skyBoxSize,  1.0f * skyBoxSize,  1.0f * skyBoxSize,
+            1.0f * skyBoxSize, -1.0f * skyBoxSize,  1.0f * skyBoxSize,
+            -1.0f * skyBoxSize, -1.0f * skyBoxSize,  1.0f * skyBoxSize,
+
+            -1.0f * skyBoxSize,  1.0f * skyBoxSize, -1.0f * skyBoxSize,
+            1.0f * skyBoxSize,  1.0f * skyBoxSize, -1.0f * skyBoxSize,
+            1.0f * skyBoxSize,  1.0f * skyBoxSize,  1.0f * skyBoxSize,
+            1.0f * skyBoxSize,  1.0f * skyBoxSize,  1.0f * skyBoxSize,
+            -1.0f * skyBoxSize,  1.0f * skyBoxSize,  1.0f * skyBoxSize,
+            -1.0f * skyBoxSize,  1.0f * skyBoxSize, -1.0f * skyBoxSize,
+
+            -1.0f * skyBoxSize, -1.0f * skyBoxSize,  1.0f * skyBoxSize,
+            -1.0f * skyBoxSize, -1.0f * skyBoxSize, -1.0f * skyBoxSize,
+            1.0f * skyBoxSize, -1.0f * skyBoxSize, -1.0f * skyBoxSize,
+            1.0f * skyBoxSize, -1.0f * skyBoxSize, -1.0f * skyBoxSize,
+            1.0f * skyBoxSize, -1.0f * skyBoxSize,  1.0f * skyBoxSize,
+            -1.0f * skyBoxSize, -1.0f * skyBoxSize,  1.0f * skyBoxSize
+    };
+
+
+    glGenVertexArrays(1, &skyboxVAO);
+    glGenBuffers(1, &skyboxVBO);
+
+    glBindVertexArray(skyboxVAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), skyboxVertices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+}
+
+void drawSkybox() {
+    if (skyBoxtid == 0) {
+        std::cerr << "Error: skyBox texture not generated properly!" << std::endl;
+    }
+
+
+    glUseProgram(skyboxShader);
+
+    glActiveTexture(GL_TEXTURE4);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, skyBoxtid);
+
+    GLuint viewLoc = glGetUniformLocation(skyboxShader, "view");
+    GLuint projectionLoc = glGetUniformLocation(skyboxShader, "projection");
+    GLuint skyBoxLoc = glGetUniformLocation(skyboxShader, "skybox");
+    glUniform1i(skyBoxLoc, 4);
+
+    // Remove translation
+    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(glm::mat4(glm::mat3(view))));
+    glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
+    glBindVertexArray(skyboxVAO);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+    glBindVertexArray(0);
+}
+
 
 void cleanup() {
     // Clean up resources
@@ -365,6 +529,7 @@ int main() {
     computeFourierShader = createShaderProgram("../fullScreenQuad.vert", "../computeFourier.frag");
     updateFourierShader = createShaderProgram("../fullScreenQuad.vert", "../updateFourier.frag");
     rescaleHeightShader = createShaderProgram("../fullScreenQuad.vert", "../rescaleHeight.frag");
+    skyboxShader = createShaderProgram("../skyBox.vert", "../skyBox.frag");
 
 
     // Create quadVAO, quadVBO, quadEBO
@@ -427,30 +592,15 @@ int main() {
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+    setUpEnvMap();
+    setupSkybox();
+
     setupWater(); // Create vertices for the water height plane
     computeFourier();
 
     fftProcessor.setup(gridSize);
 
 
-// Step 1: Copy data from OpenGL texture to a structure suited for FFT
-//    GLfloat* textureData = new GLfloat[gridSize * gridSize * 2]; // Complex numbers (real + imaginary)
-//    glBindTexture(GL_TEXTURE_2D, fftTexture);
-//    glGetTexImage(GL_TEXTURE_2D, 0, GL_RG, GL_FLOAT, textureData);  // Read the data from OpenGL texture
-//
-//
-//// Step 2: Process IFFT (Inverse FFT)
-//    GLfloat* ifftData = fftProcessor.performIFFTFromOpenGLTexture(textureData, gridSize);
-//
-//// Step 3: Copy processed data back to OpenGL texture (ifftTexture)
-//    glBindTexture(GL_TEXTURE_2D, ifftTexture);
-//    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, gridSize, gridSize, GL_RG, GL_FLOAT, ifftData);  // Update the ifftTexture with processed data
-//
-//// Clean up
-//    delete[] textureData;
-//    delete[] ifftData;  // Only if ifftData was dynamically allocated
-
-//    ifft();
 
 
     while (!glfwWindowShouldClose(window)) {
@@ -461,10 +611,10 @@ int main() {
         view = camera.getViewMatrix();
         projection = camera.getProjMatrix(70.0f, 0.1f, 100.0f);
 
-        // Use shader program and bind quadVAO
         glDisable(GL_DEPTH_TEST);
-//        drawSkybox();
+        drawSkybox();
         glEnable(GL_DEPTH_TEST);
+
 
         updateFourier();
         ifft();
@@ -473,7 +623,17 @@ int main() {
         glfwGetFramebufferSize(window, &width, &height);
         glViewport(0, 0, width, height);
 
+
+        // 2️⃣ Enable blending for water
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glDepthMask(GL_FALSE);  // Disable writing to the depth buffer
+
         drawWater();
+
+        glDepthMask(GL_TRUE);  // Re-enable depth writing
+        glDisable(GL_BLEND);
+
 
         // Swap front and back buffers
         glfwSwapBuffers(window);

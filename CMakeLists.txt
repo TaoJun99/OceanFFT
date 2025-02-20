@@ -59,5 +59,5 @@ target_link_libraries(OceanFFT PRIVATE OpenGL::GL)
 
 
 
-#target_include_directories(Test PRIVATE ${CMAKE_SOURCE_DIR}/include)
-#target_link_directories(Test PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_include_directories(OceanFFT PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_link_directories(OceanFFT PRIVATE ${CMAKE_SOURCE_DIR}/include)

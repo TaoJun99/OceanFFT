@@ -8,5 +8,5 @@ out vec4 fragColor;
 
 void main() {
     float scale = 20000.0;
-    fragColor = vec4((texture(ifftTexture, texCoords).x + texture(ifftTexture, texCoords).y)* scale, 0.0, 0.0, 0.0);
+    fragColor = vec4((texture(ifftTexture, texCoords).x + texture(ifftTexture, texCoords).y)* scale, 0.0, 0.0, 1.0);
 }
