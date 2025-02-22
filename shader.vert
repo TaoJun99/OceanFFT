@@ -14,6 +14,7 @@ uniform float maxVal;
 out vec2 texCoords;
 out vec3 ecNormal;
 out vec3 ecPosition;
+out float waveHeight;
 
 vec3 computeSurfaceNormal() {
     ivec2 texel = ivec2(floor(texCoords * float(gridSize - 1)));
@@ -39,7 +40,8 @@ vec3 computeSurfaceNormal() {
 
 void main() {
     texCoords = (aPos.xz + size / 2) / size;
-    vec3 position = vec3(aPos.x, texture(inputTexture, texCoords).x , aPos.z);
+    waveHeight = texture(inputTexture, texCoords).x;
+    vec3 position = vec3(aPos.x, waveHeight, aPos.z);
     gl_Position = projection * view * model * vec4(position, 1.0);
 
     ecNormal = normalize(mat3(transpose(inverse(view * model))) * computeSurfaceNormal());

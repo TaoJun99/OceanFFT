@@ -19,7 +19,7 @@ GLuint skyboxVAO, skyboxVBO, skyboxShader;
 GLuint skyBoxtid;
 //GLuint projectionLoc, viewLoc, modelLoc;
 glm::mat4 projection, view;
-glm::vec3 cameraPos = glm::vec3(0.0f, 2.0f, 2.5f);
+glm::vec3 cameraPos = glm::vec3(0.0f, 13.0f, 2.5f);
 float cameraWidth = 800.0f;
 float cameraHeight = 600.0f;
 Camera camera(cameraWidth, cameraHeight, cameraPos);
@@ -43,11 +43,11 @@ IFFT ifftClass;
 const GLfloat lightAmbient[] = { 0.1f, 0.2f, 0.3f, 1.0f };
 const GLfloat lightDiffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 const GLfloat lightSpecular[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-const GLfloat lightPosition[4] = { 0.0f, 100.0f, -20.0f, 0.0f }; // Given in eye space
+const GLfloat lightPosition[4] = {0.0f, 100.0f, 0.0f, 1.0f }; // Given in eye space
 
 // Grid size
-const int gridSize = 2048; // Number of segments in each direction
-const float size = 30.0f;  // Size of the plane
+const int gridSize = 1024; // Number of segments in each direction
+const float size = 100.0f;  // Size of the plane
 
 float quadVertices[] = {
         -1.0f, -1.0f,
@@ -235,7 +235,7 @@ void computeFourier() {
 
     glUniform1f(alphaLoc, 0.0081);
     glUniform1f(gLoc, 9.81);
-    glUniform1f(k_pLoc, 0.03);
+    glUniform1f(k_pLoc, 0.001);
     glUniform1f(gammaLoc, 3.3);
     glUniform1i(NLoc, gridSize);
     glUniform1f(LLoc, size);
