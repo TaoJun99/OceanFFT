@@ -24,20 +24,31 @@ float cameraWidth = 800.0f;
 float cameraHeight = 600.0f;
 Camera camera(cameraWidth, cameraHeight, cameraPos);
 int waterPlaneIndexCount;
-GLuint oceanHeightTexture;
-GLuint fftTexture;
-GLuint ifftTexture;
-GLuint fourierHeightTexture;
+GLuint oceanHeightTexture; // Actual ocean height (after scaling)
+GLuint fftTexture; // For fourier height without phase
+GLuint ifftTexture; // Ifft of fourierHeightTexture
+GLuint fourierHeightTexture;  // Fourier height with phase
 GLuint quadVAO, quadVBO, quadEBO;
 
 GLuint computeFourierShader;
 GLuint updateFourierShader;
 GLuint rescaleHeightShader;
 
+GLuint sweHeightTexture;
+GLuint velocityTexture;
+GLuint applyForceShaderProgram;
+GLuint advectShaderProgram;
+GLuint advectHeightShaderProgram;
+GLuint velocityIntegrationShaderProgram;
+GLuint initHeightShaderProgram;
+GLuint smoothHeightShaderProgram;
+
+GLuint addHeightsShaderProgram;
+GLuint finalHeightTexture;
+
 GLuint framebuffer;
 
 OpenCLFFT fftProcessor;
-IFFT ifftClass;
 
 // Light info.
 const GLfloat lightAmbient[] = { 0.1f, 0.2f, 0.3f, 1.0f };
@@ -48,6 +59,12 @@ const GLfloat lightPosition[4] = {0.0f, 100.0f, 0.0f, 1.0f }; // Given in eye sp
 // Grid size
 const int gridSize = 1024; // Number of segments in each direction
 const float size = 100.0f;  // Size of the plane
+
+std::vector<GLfloat> zeroData(gridSize * gridSize * 4, 0.0f);
+
+float yPlaneHeight = 10.0;
+
+float timeStep = 0.5;
 
 float quadVertices[] = {
         -1.0f, -1.0f,
@@ -178,10 +195,33 @@ void setupWater() {
 
     delete[] vertices;
     delete[] indices;
+
+    glUseProgram(initHeightShaderProgram);
+
+    glActiveTexture(GL_TEXTURE4);
+    glBindTexture(GL_TEXTURE_2D, sweHeightTexture);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, sweHeightTexture, 0);
+
+    glViewport(0, 0, gridSize, gridSize);
+//    glClear(GL_COLOR_BUFFER_BIT);
+
+    glBindVertexArray(quadVAO);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void drawWater() {
     glUseProgram(waterShader);
+
+    glActiveTexture(GL_TEXTURE5);
+    glBindTexture(GL_TEXTURE_2D, sweHeightTexture);
+
+    glActiveTexture(GL_TEXTURE7);
+    glBindTexture(GL_TEXTURE_2D, finalHeightTexture);
 
     // Matrices
     glm::mat4 model = glm::mat4(1.0f);  // Identity matrix (no transformation)
@@ -207,7 +247,7 @@ void drawWater() {
     glUniform4f(lightAmbientLoc, lightAmbient[0], lightAmbient[1], lightAmbient[2], lightAmbient[3]);
     glUniform4f(lightDiffuseLoc, lightDiffuse[0], lightDiffuse[1], lightDiffuse[2], lightDiffuse[3]);
     glUniform4f(lightSpecularLoc, lightSpecular[0], lightSpecular[1], lightSpecular[2], lightSpecular[3]);
-    glUniform1i(textureLoc, 0);
+    glUniform1i(textureLoc, 7);
     glUniform1f(sizeLoc, size);
     glUniform1i(gridSizeLoc, gridSize);
     glUniform1i(envMapLoc, 4);
@@ -259,7 +299,6 @@ void updateFourier() {
     GLuint fftTextureLoc = glGetUniformLocation(updateFourierShader, "fftTexture");
     GLuint NLoc = glGetUniformLocation(updateFourierShader, "N");
     GLuint LLoc = glGetUniformLocation(updateFourierShader, "L");
-
 
     float currentTime = glfwGetTime();
     glUniform1f(timeLoc, currentTime);
@@ -481,6 +520,297 @@ void drawSkybox() {
     glBindVertexArray(0);
 }
 
+void advect(GLuint texture) {
+    glUseProgram(advectShaderProgram);
+
+    // Generate texture to store intermediate results
+    GLuint outputTexture;
+    glGenTextures(1, &outputTexture);
+    glBindTexture(GL_TEXTURE_2D, outputTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, gridSize, gridSize, 0, GL_RGBA, GL_FLOAT, zeroData.data());
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    // Bind the velocity and dye textures
+
+    glActiveTexture(GL_TEXTURE6);
+    glBindTexture(GL_TEXTURE_2D, velocityTexture);
+
+    glActiveTexture(GL_TEXTURE8);
+    glBindTexture(GL_TEXTURE_2D, outputTexture);
+
+
+    // Set the uniform variables
+    GLuint timestepLoc = glGetUniformLocation(advectShaderProgram, "timestep");
+    GLuint rdxLoc = glGetUniformLocation(advectShaderProgram, "rdx");
+    GLuint velocityTextureLoc = glGetUniformLocation(advectShaderProgram, "velocityTexture");
+    GLuint gridSizeLoc = glGetUniformLocation(advectShaderProgram, "gridSize");
+
+    glUniform1f(timestepLoc, timeStep);
+    glUniform1f(rdxLoc, 1.0 / gridSize);
+    glUniform1i(velocityTextureLoc, 6);
+    glUniform1f(gridSizeLoc, gridSize);
+
+
+    // Render texture to framebuffer
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, outputTexture, 0);
+
+    glViewport(0, 0, gridSize, gridSize);
+//    glClear(GL_COLOR_BUFFER_BIT);
+
+    glBindVertexArray(quadVAO);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
+    glBindTexture(GL_TEXTURE_2D, velocityTexture);
+    glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, gridSize, gridSize);
+
+    // Unbind the framebuffer
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    glDeleteTextures(1, &outputTexture);
+}
+
+void getMouseNDC(GLFWwindow* window, glm::vec2& mouseNDC) {
+    // Window coordinates
+    double mouseX, mouseY;
+    glfwGetCursorPos(window, &mouseX, &mouseY);
+
+    int windowWidth, windowHeight;
+    glfwGetWindowSize(window, &windowWidth, &windowHeight);
+
+    mouseNDC.x = (2.0f * static_cast<float>(mouseX) / windowWidth) - 1.0f;
+    mouseNDC.y = 1.0f - (2.0f * static_cast<float>(mouseY) / windowHeight);
+//    std::cout << "Mouse: " << mouseNDC.x << ", " << mouseNDC.y  << std::endl;
+}
+
+
+glm::vec3 computePlaneIntersection(const glm::vec2& mouseNDC) {
+    glm::mat4 invVP = glm::inverse(projection * view);
+
+    // Create ray in NDC space (clip space)
+    glm::vec4 nearPoint = invVP * glm::vec4(mouseNDC, -1.0f, 1.0f);
+    glm::vec4 farPoint = invVP * glm::vec4(mouseNDC, 1.0f, 1.0f);
+
+    // Convert to world coordinates (perspective divide)
+    nearPoint /= nearPoint.w;
+    farPoint /= farPoint.w;
+
+    glm::vec3 rayOrigin = glm::vec3(nearPoint);
+    glm::vec3 rayDirection = glm::normalize(glm::vec3(farPoint) - rayOrigin);
+
+    // Debug: Print ray data
+//    std::cout << "Ray Origin: " << rayOrigin.x << ", " << rayOrigin.y << ", " << rayOrigin.z << std::endl;
+//    std::cout << "Ray Direction: " << rayDirection.x << ", " << rayDirection.y << ", " << rayDirection.z << std::endl;
+
+    // Check if ray is parallel to the plane
+    if (glm::abs(rayDirection.y) < 1e-6f) {
+//        std::cout << "Ray is parallel to the plane!" << std::endl;
+        return glm::vec3(-1, -1, -1);
+    }
+
+    // Compute intersection t for the plane at y = yPlaneHeight
+    float t = (yPlaneHeight - rayOrigin.y) / rayDirection.y;
+
+    // If t < 0, intersection is behind the camera
+    if (t < 0) {
+//        std::cout << "Intersection is behind the camera!" << std::endl;
+        return glm::vec3(-1, -1, -1);
+    }
+
+    // Compute intersection point
+    glm::vec3 intersection = rayOrigin + t * rayDirection;
+
+    // Debug: Print intersection data
+    std::cout << "Intersection: " << intersection.x << ", " << intersection.y << ", " << intersection.z << std::endl;
+
+    // Check if the intersection is within the bounded region
+    float halfSize = size / 2.0f;
+    if (intersection.x < -halfSize || intersection.x > halfSize ||
+        intersection.z < -halfSize || intersection.z > halfSize) {
+        std::cout << "Intersection is out of bounds!" << std::endl;
+        return glm::vec3(-1, -1, -1); // Outside the boundary
+    }
+
+    return intersection;
+}
+
+
+
+void applyForce(GLFWwindow *window) {
+    int width, height;
+    glfwGetFramebufferSize(window, &width, &height);
+    glViewport(0, 0, width, height);
+
+    glm::vec2 mouseNDC;
+    getMouseNDC(window, mouseNDC);
+
+    glm::vec3 intersection = computePlaneIntersection(mouseNDC);
+
+    if (intersection == glm::vec3(-1, -1, -1)) return;
+
+    intersection = (intersection + size / 2) / size;
+
+//    std::cout << "Intersection: " << intersection.x << ", " << intersection.y << ", " << intersection.z << std::endl;
+
+    glUseProgram(applyForceShaderProgram);
+
+    glActiveTexture(GL_TEXTURE6);
+    glBindTexture(GL_TEXTURE_2D, velocityTexture);
+
+    GLuint forcePosLoc = glGetUniformLocation(applyForceShaderProgram, "forcePos");
+    GLuint forceDirLoc = glGetUniformLocation(applyForceShaderProgram, "forceDir");
+    GLuint forceRadiusLoc = glGetUniformLocation(applyForceShaderProgram, "forceRadius");
+    GLuint forceStrengthLoc = glGetUniformLocation(applyForceShaderProgram, "forceStrength");
+    GLuint velocityTextureLoc = glGetUniformLocation(applyForceShaderProgram, "velocityTexture");
+    GLuint gridSizeLoc = glGetUniformLocation(applyForceShaderProgram, "gridSize");
+    GLuint sizeLoc = glGetUniformLocation(applyForceShaderProgram, "size");
+
+    glUniform3fv(forcePosLoc, 1, glm::value_ptr(intersection));
+    glUniform2f(forceDirLoc, 1.0f, 0.0f);
+    glUniform1f(forceRadiusLoc, 0.005);
+    glUniform1f(forceStrengthLoc, 10.0f);
+    glUniform1i(velocityTextureLoc, 6);
+    glUniform1i(gridSizeLoc, gridSize);
+    glUniform1f(sizeLoc, size);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, velocityTexture, 0);
+
+    glViewport(0, 0, gridSize, gridSize);
+
+    glBindVertexArray(quadVAO);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+}
+
+void advectHeight() {
+    glUseProgram(advectHeightShaderProgram);
+
+    glActiveTexture(GL_TEXTURE5);
+    glBindTexture(GL_TEXTURE_2D, sweHeightTexture);
+    glActiveTexture(GL_TEXTURE6);
+    glBindTexture(GL_TEXTURE_2D, velocityTexture);
+
+    GLuint velocityTextureLoc = glGetUniformLocation(advectHeightShaderProgram, "velocityTexture");
+    GLuint heightFieldLoc = glGetUniformLocation(advectHeightShaderProgram, "heightField");
+    GLuint halfrdxLoc = glGetUniformLocation(advectHeightShaderProgram, "halfrdx");
+    GLuint gridSizeLoc = glGetUniformLocation(advectHeightShaderProgram, "gridSize");
+    GLuint timeStepLoc = glGetUniformLocation(advectHeightShaderProgram, "timeStep");
+
+    glUniform1i(velocityTextureLoc, 6);
+    glUniform1i(heightFieldLoc, 5);
+    glUniform1f(halfrdxLoc, 1.0 / (2.0  * gridSize));
+    glUniform1i(gridSizeLoc, gridSize);
+    glUniform1f(timeStepLoc, timeStep);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, sweHeightTexture, 0);
+
+    glViewport(0, 0, gridSize, gridSize);
+
+    glBindVertexArray(quadVAO);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void smoothHeight() {
+    glUseProgram(smoothHeightShaderProgram);
+
+    glActiveTexture(GL_TEXTURE5);
+    glBindTexture(GL_TEXTURE_2D, sweHeightTexture);
+
+
+    GLuint heightFieldLoc = glGetUniformLocation(smoothHeightShaderProgram, "heightField");
+    GLuint gridSizeLoc = glGetUniformLocation(smoothHeightShaderProgram, "gridSize");
+
+
+    glUniform1i(heightFieldLoc, 5);
+    glUniform1i(gridSizeLoc, gridSize);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, sweHeightTexture, 0);
+
+    glViewport(0, 0, gridSize, gridSize);
+
+    glBindVertexArray(quadVAO);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void integrateVelocity() {
+    glUseProgram(velocityIntegrationShaderProgram);
+
+    glActiveTexture(GL_TEXTURE5);
+    glBindTexture(GL_TEXTURE_2D, sweHeightTexture);
+    glActiveTexture(GL_TEXTURE6);
+    glBindTexture(GL_TEXTURE_2D, velocityTexture);
+
+
+    GLuint velocityTextureLoc = glGetUniformLocation(velocityIntegrationShaderProgram, "velocityTexture");
+    GLuint heightFieldLoc = glGetUniformLocation(velocityIntegrationShaderProgram, "heightField");
+    GLuint halfrdxLoc = glGetUniformLocation(velocityIntegrationShaderProgram, "halfrdx");
+    GLuint timeStepLoc = glGetUniformLocation(velocityIntegrationShaderProgram, "timeStep");
+    GLuint gridSizeLoc = glGetUniformLocation(velocityIntegrationShaderProgram, "gridSize");
+
+    glUniform1i(velocityTextureLoc, 6);
+    glUniform1i(heightFieldLoc, 5);
+
+    glUniform1f(halfrdxLoc, 1.0 / (2.0 * gridSize));
+    glUniform1f(timeStepLoc, timeStep);
+    glUniform1i(gridSizeLoc, gridSize);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, velocityTexture, 0);
+
+    glViewport(0, 0, gridSize, gridSize);
+
+    glBindVertexArray(quadVAO);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void addHeights() {
+    glUseProgram(addHeightsShaderProgram);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, oceanHeightTexture);
+    glActiveTexture(GL_TEXTURE5);
+    glBindTexture(GL_TEXTURE_2D, sweHeightTexture);
+
+    GLuint oceanHeightTextureLoc = glGetUniformLocation(addHeightsShaderProgram, "oceanHeightTexture");
+    GLuint sweHeightFieldLoc = glGetUniformLocation(addHeightsShaderProgram, "sweHeightTexture");
+
+    glUniform1i(oceanHeightTextureLoc, 0);
+    glUniform1i(sweHeightFieldLoc, 5);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, finalHeightTexture, 0);
+
+    glViewport(0, 0, gridSize, gridSize);
+
+    glBindVertexArray(quadVAO);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
 
 void cleanup() {
     // Clean up resources
@@ -530,6 +860,13 @@ int main() {
     updateFourierShader = createShaderProgram("../fullScreenQuad.vert", "../updateFourier.frag");
     rescaleHeightShader = createShaderProgram("../fullScreenQuad.vert", "../rescaleHeight.frag");
     skyboxShader = createShaderProgram("../skyBox.vert", "../skyBox.frag");
+    advectShaderProgram = createShaderProgram("../fullScreenQuad.vert", "../advect.frag");
+    advectHeightShaderProgram = createShaderProgram("../fullScreenQuad.vert", "../advectHeight.frag");
+    velocityIntegrationShaderProgram = createShaderProgram("../fullScreenQuad.vert", "../velocityIntegration.frag");
+    initHeightShaderProgram = createShaderProgram("../fullScreenQuad.vert", "../initHeight.frag");
+    smoothHeightShaderProgram = createShaderProgram("../fullScreenQuad.vert", "../smoothHeight.frag");
+    addHeightsShaderProgram = createShaderProgram("../fullScreenQuad.vert", "../addHeights.frag");
+    applyForceShaderProgram = createShaderProgram("../fullScreenQuad.vert", "../applyForce.frag");
 
 
     // Create quadVAO, quadVBO, quadEBO
@@ -579,6 +916,33 @@ int main() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+    glActiveTexture(GL_TEXTURE5);
+    glGenTextures(1, &sweHeightTexture);
+    glBindTexture(GL_TEXTURE_2D, sweHeightTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, gridSize, gridSize, 0, GL_RG, GL_FLOAT, zeroData.data());
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    glActiveTexture(GL_TEXTURE6);
+    glGenTextures(1, &velocityTexture);
+    glBindTexture(GL_TEXTURE_2D, velocityTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, gridSize, gridSize, 0, GL_RG, GL_FLOAT, zeroData.data());
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    glActiveTexture(GL_TEXTURE7);
+    glGenTextures(1, &finalHeightTexture);
+    glBindTexture(GL_TEXTURE_2D, finalHeightTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, gridSize, gridSize, 0, GL_RG, GL_FLOAT, zeroData.data());
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
     // Create framebuffer
     glGenFramebuffers(1, &framebuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
@@ -601,27 +965,36 @@ int main() {
     fftProcessor.setup(gridSize);
 
 
-
-
     while (!glfwWindowShouldClose(window)) {
         // Clear screen and depth buffer
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         camera.Inputs(window);
         view = camera.getViewMatrix();
-        projection = camera.getProjMatrix(70.0f, 0.1f, 100.0f);
+        projection = camera.getProjMatrix(70.0f, 0.1f, 1000.0f);
 
-        glDisable(GL_DEPTH_TEST);
-        drawSkybox();
-        glEnable(GL_DEPTH_TEST);
+        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
+            applyForce(window);
+        }
 
+
+        advect(velocityTexture);
+        advectHeight();
+        smoothHeight();
+        integrateVelocity();
 
         updateFourier();
         ifft();
 
+        addHeights();
+
         int width, height;
         glfwGetFramebufferSize(window, &width, &height);
         glViewport(0, 0, width, height);
+
+        glDisable(GL_DEPTH_TEST);
+        drawSkybox();
+        glEnable(GL_DEPTH_TEST);
 
 
         // 2️⃣ Enable blending for water
