@@ -9,4 +9,5 @@ out vec4 fragColor;
 
 void main() {
     fragColor = vec4(texture(oceanHeightTexture, texCoords).x + texture(sweHeightTexture, texCoords).x, 0.0, 0.0, 0.0);
+//    fragColor = vec4(texture(sweHeightTexture, texCoords).x, 0.0, 0.0, 0.0);
 }

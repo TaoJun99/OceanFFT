@@ -9,9 +9,9 @@ uniform float timeStep;
 in vec2 texCoords;
 out vec4 fragColor;
 
-bool isBoundary(vec2 texCoords) {
-    return texCoords.x == 0 || texCoords.x == 1 ||
-    texCoords.y == 0 || texCoords.y == 1;
+bool isBoundary(ivec2 gridCellIndex) {
+    return gridCellIndex.x == 0 || gridCellIndex.x == gridSize ||
+    gridCellIndex.y == 0 || gridCellIndex.y == gridSize;
 }
 
 void main() {
@@ -35,13 +35,13 @@ void main() {
     vec2 grad_h = halfrdx * vec2(hR - hL, hT - hB);
 
 
-    if (!isBoundary(texCoords)) {
+    if (!isBoundary(gridCellIndex)) {
         float v_x = v.x - (g * (hR - hL) * 2 * halfrdx) * 50 * timeStep;
         float v_y = v.y - (g * (hT - hB) * 2 * halfrdx) * 50 * timeStep;
 
-        fragColor = 0.98 * vec4(v_x, v_y, 0.0, 0.0);
+        fragColor = 0.9 * vec4(v_x, v_y, 0.0, 0.0);
     } else {
-        fragColor = v;
+        fragColor = vec4(0.0, 0.0, 0.0, 0.0);
     }
 
 }

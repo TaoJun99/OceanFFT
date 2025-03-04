@@ -46,6 +46,11 @@ GLuint smoothHeightShaderProgram;
 GLuint addHeightsShaderProgram;
 GLuint finalHeightTexture;
 
+GLuint fourierVelocityShaderProgram;
+GLuint fourierRVelocityTexture;
+GLuint fourierCVelocityTexture;
+GLuint getVelocityShaderProgram;
+
 GLuint framebuffer;
 
 OpenCLFFT fftProcessor;
@@ -58,7 +63,7 @@ const GLfloat lightPosition[4] = {0.0f, 100.0f, 0.0f, 1.0f }; // Given in eye sp
 
 // Grid size
 const int gridSize = 1024; // Number of segments in each direction
-const float size = 100.0f;  // Size of the plane
+const float size = 50.0f;  // Size of the plane
 
 std::vector<GLfloat> zeroData(gridSize * gridSize * 4, 0.0f);
 
@@ -257,9 +262,9 @@ void drawWater() {
     glDrawElements(GL_TRIANGLES, waterPlaneIndexCount, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 
-//    glBindVertexArray(quadVAO);
-//    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-//    glBindVertexArray(0);
+    glBindVertexArray(quadVAO);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
 
 }
 
@@ -318,7 +323,7 @@ void updateFourier() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void ifft() {
+void ifftOceanHeight() {
 
 // Step 1: Copy data from OpenGL texture to a structure suited for FFT
     GLfloat* textureData = new GLfloat[gridSize * gridSize * 2]; // Complex numbers (real + imaginary)
@@ -358,6 +363,153 @@ void ifft() {
     glBindVertexArray(quadVAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
+
+    // Unbind the framebuffer
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void getFourierVelocity() {
+    // Get velocity in fourier domain
+    glUseProgram(fourierVelocityShaderProgram);
+
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, fourierHeightTexture);
+    glActiveTexture(GL_TEXTURE9);
+    glBindTexture(GL_TEXTURE_2D, fourierRVelocityTexture);
+    glActiveTexture(GL_TEXTURE10);
+    glBindTexture(GL_TEXTURE_2D, fourierCVelocityTexture);
+
+    GLuint fftTextureLoc = glGetUniformLocation(fourierVelocityShaderProgram, "fftTexture");
+    GLuint isRealLoc = glGetUniformLocation(fourierVelocityShaderProgram, "isReal");
+    GLuint NLoc = glGetUniformLocation(fourierVelocityShaderProgram, "N");
+    GLuint LLoc = glGetUniformLocation(fourierVelocityShaderProgram, "L");
+
+    glUniform1i(fftTextureLoc, 3);
+    glUniform1i(isRealLoc, 1);
+    glUniform1i(NLoc, gridSize);
+    glUniform1f(LLoc, size);
+
+    // Render to real velocity texture
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fourierRVelocityTexture, 0);
+
+    glViewport(0, 0, gridSize, gridSize);
+
+    glBindVertexArray(quadVAO);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
+    // Render to complex velocity texture
+    glUniform1i(isRealLoc, 0);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fourierCVelocityTexture, 0);
+
+    glViewport(0, 0, gridSize, gridSize);
+
+    glBindVertexArray(quadVAO);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
+    int width = gridSize, height = gridSize;
+    GLfloat* texture = new GLfloat[width * height * 2]; // 2 components per texel (R, G)
+
+    glBindTexture(GL_TEXTURE_2D, fourierRVelocityTexture);
+    glGetTexImage(GL_TEXTURE_2D, 0, GL_RG, GL_FLOAT, texture);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+//    for (int j = 0; j < 20; ++j) {
+//        for (int i = 0; i < 20; ++i) {
+//            int idx = (j * width + i) * 2; // Two components per texel
+//
+//            float vx = texture[idx];     // R channel (v_x)
+//            float vy = texture[idx + 1]; // G channel (v_y)
+//
+//            std::cout << "(" << vx << ", " << vy << ")  ";
+//        }
+//        std::cout << std::endl; // New row
+//    }
+
+    // Unbind the framebuffer
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void ifftVelocity() {
+// Step 1: Copy data from OpenGL texture to a structure suited for FFT
+    GLfloat* textureData = new GLfloat[gridSize * gridSize * 2]; // Complex numbers (real + imaginary)
+    glBindTexture(GL_TEXTURE_2D, fourierRVelocityTexture);
+    glGetTexImage(GL_TEXTURE_2D, 0, GL_RG, GL_FLOAT, textureData);  // Read the data from OpenGL texture
+
+
+// Step 2: Process IFFT (Inverse FFT)
+    GLfloat* ifftData = fftProcessor.performIFFTFromOpenGLTexture(textureData, gridSize);
+//    std::vector<GLfloat> ifftData = ifftClass.performIFFTFromTextureData(textureData, gridSize);
+
+    size_t totalSize = gridSize * gridSize * 2;
+
+//    GLfloat minVal, maxVal;
+//    vDSP_minv(ifftData.data(), 1, &minVal, totalSize); // Find min
+//    vDSP_maxv(ifftData.data(), 1, &maxVal, totalSize); // Find max
+
+//    vDSP_minv(ifftData, 1, &minVal, totalSize); // Find min
+//    vDSP_maxv(ifftData, 1, &maxVal, totalSize); // Find max
+
+// Step 3: Copy processed data back to OpenGL texture (ifftTexture)
+    glBindTexture(GL_TEXTURE_2D, fourierRVelocityTexture);
+//    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, gridSize, gridSize, GL_RG, GL_FLOAT, ifftData.data());  // Update the ifftTexture with processed data
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, gridSize, gridSize, GL_RG, GL_FLOAT, ifftData);
+
+    glBindTexture(GL_TEXTURE_2D, fourierCVelocityTexture);
+    glGetTexImage(GL_TEXTURE_2D, 0, GL_RG, GL_FLOAT, textureData);  // Read the data from OpenGL texture
+    ifftData = fftProcessor.performIFFTFromOpenGLTexture(textureData, gridSize);
+    glBindTexture(GL_TEXTURE_2D, fourierCVelocityTexture);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, gridSize, gridSize, GL_RG, GL_FLOAT, ifftData);
+
+
+    // Clean up
+    delete[] textureData;
+    delete[] ifftData;
+
+    glUseProgram(getVelocityShaderProgram);
+
+    glActiveTexture(GL_TEXTURE6);
+    glBindTexture(GL_TEXTURE_2D, velocityTexture);
+    glActiveTexture(GL_TEXTURE9);
+    glBindTexture(GL_TEXTURE_2D, fourierRVelocityTexture);
+    glActiveTexture(GL_TEXTURE10);
+    glBindTexture(GL_TEXTURE_2D, fourierCVelocityTexture);
+
+    GLuint v_xLoc = glGetUniformLocation(getVelocityShaderProgram, "v_x");
+    GLuint v_yLoc = glGetUniformLocation(getVelocityShaderProgram, "v_y");
+    glUniform1i(v_xLoc, 9);
+    glUniform1i(v_yLoc, 10);
+
+    glViewport(0, 0, gridSize, gridSize);
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, velocityTexture, 0);
+
+    glBindVertexArray(quadVAO);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
+//    int width = gridSize, height = gridSize;
+//    GLfloat* texture = new GLfloat[width * height * 2]; // 2 components per texel (R, G)
+//
+//    glBindTexture(GL_TEXTURE_2D, velocityTexture);
+//    glGetTexImage(GL_TEXTURE_2D, 0, GL_RG, GL_FLOAT, texture);
+//    glBindTexture(GL_TEXTURE_2D, 0);
+//
+//    for (int j = 0; j < 20; ++j) {
+//        for (int i = 0; i < 20; ++i) {
+//            int idx = (j * width + i) * 2; // Two components per texel
+//
+//            float vx = texture[idx];     // R channel (v_x)
+//            float vy = texture[idx + 1]; // G channel (v_y)
+//
+//            std::cout << "(" << vx << ", " << vy << ")  ";
+//        }
+//        std::cout << std::endl; // New row
+//    }
 
     // Unbind the framebuffer
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -671,8 +823,8 @@ void applyForce(GLFWwindow *window) {
 
     glUniform3fv(forcePosLoc, 1, glm::value_ptr(intersection));
     glUniform2f(forceDirLoc, 1.0f, 0.0f);
-    glUniform1f(forceRadiusLoc, 0.005);
-    glUniform1f(forceStrengthLoc, 10.0f);
+    glUniform1f(forceRadiusLoc, 0.01);
+    glUniform1f(forceStrengthLoc, 20.0f);
     glUniform1i(velocityTextureLoc, 6);
     glUniform1i(gridSizeLoc, gridSize);
     glUniform1f(sizeLoc, size);
@@ -867,7 +1019,8 @@ int main() {
     smoothHeightShaderProgram = createShaderProgram("../fullScreenQuad.vert", "../smoothHeight.frag");
     addHeightsShaderProgram = createShaderProgram("../fullScreenQuad.vert", "../addHeights.frag");
     applyForceShaderProgram = createShaderProgram("../fullScreenQuad.vert", "../applyForce.frag");
-
+    fourierVelocityShaderProgram = createShaderProgram("../fullScreenQuad.vert", "../fourierVelocity.frag");
+    getVelocityShaderProgram = createShaderProgram("../fullScreenQuad.vert", "../getVelocity.frag");
 
     // Create quadVAO, quadVBO, quadEBO
     glGenVertexArrays(1, &quadVAO);
@@ -943,6 +1096,24 @@ int main() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
+    glActiveTexture(GL_TEXTURE9);
+    glGenTextures(1, &fourierRVelocityTexture);
+    glBindTexture(GL_TEXTURE_2D, fourierRVelocityTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, gridSize, gridSize, 0, GL_RG, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    glActiveTexture(GL_TEXTURE10);
+    glGenTextures(1, &fourierCVelocityTexture);
+    glBindTexture(GL_TEXTURE_2D, fourierCVelocityTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, gridSize, gridSize, 0, GL_RG, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
     // Create framebuffer
     glGenFramebuffers(1, &framebuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
@@ -973,18 +1144,20 @@ int main() {
         view = camera.getViewMatrix();
         projection = camera.getProjMatrix(70.0f, 0.1f, 1000.0f);
 
+        updateFourier();
+        ifftOceanHeight();
+
+        getFourierVelocity();
+        ifftVelocity();
+
         if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
             applyForce(window);
         }
-
 
         advect(velocityTexture);
         advectHeight();
         smoothHeight();
         integrateVelocity();
-
-        updateFourier();
-        ifft();
 
         addHeights();
 

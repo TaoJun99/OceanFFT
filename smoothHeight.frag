@@ -3,9 +3,13 @@
 uniform sampler2D heightField;
 uniform int gridSize;
 
-
 in vec2 texCoords;
 out vec4 fragColor;
+
+bool isBoundary(ivec2 gridCellIndex) {
+    return gridCellIndex.x == 0 || gridCellIndex.x >= gridSize - 1||
+    gridCellIndex.y == 0 || gridCellIndex.y >= gridSize - 1;
+}
 
 
 void main() {
@@ -34,6 +38,13 @@ void main() {
     2.0 * hL + 4.0 * hC + 2.0 * hR +
     hBL + 2.0 * hB + hBR) / weightSum;
 
-    fragColor = vec4(hSmooth, 0.0, 0.0, 0.0);
+    ivec2 gridCellIndex = ivec2(floor(texCoords * (gridSize - 1)));
+
+    if (!isBoundary(gridCellIndex)) {
+        fragColor = vec4(hSmooth, 0.0, 0.0, 0.0);
+    } else {
+        fragColor = vec4(10.0, 0.0, 0.0, 0.0);
+    }
+
 }
 
