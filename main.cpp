@@ -62,7 +62,7 @@ const GLfloat lightSpecular[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 const GLfloat lightPosition[4] = {0.0f, 100.0f, 0.0f, 1.0f }; // Given in eye space
 
 // Grid size
-const int gridSize = 1024; // Number of segments in each direction
+const int gridSize = 512; // Number of segments in each direction
 const float size = 50.0f;  // Size of the plane
 
 std::vector<GLfloat> zeroData(gridSize * gridSize * 4, 0.0f);
@@ -777,7 +777,7 @@ glm::vec3 computePlaneIntersection(const glm::vec2& mouseNDC) {
     glm::vec3 intersection = rayOrigin + t * rayDirection;
 
     // Debug: Print intersection data
-    std::cout << "Intersection: " << intersection.x << ", " << intersection.y << ", " << intersection.z << std::endl;
+//    std::cout << "Intersection: " << intersection.x << ", " << intersection.y << ", " << intersection.z << std::endl;
 
     // Check if the intersection is within the bounded region
     float halfSize = size / 2.0f;

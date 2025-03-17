@@ -25,9 +25,9 @@ void main() {
     vec2 h = texture(fftTexture, texCoords).xy;
 
     if (isReal) {
-        fragColor = -k_x / k_mag * 13000 * vec4(h.y, h.x, 0.0, 0.0);
+        fragColor = -k_x / k_mag * 800 * vec4(h.y, h.x, 0.0, 0.0);
     } else {
-        fragColor = -k_y / k_mag * 13000 * vec4(h.y, h.x, 0.0, 0.0);
+        fragColor = -k_y / k_mag * 800 * vec4(h.y, h.x, 0.0, 0.0);
     }
 
 

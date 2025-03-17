@@ -119,7 +119,7 @@ void main() {
 //    fragColor = fresnel * envColor;
     // env map w light scatter
 //    fragColor = mix(fresnel * envColor , fresnel * k_s * LightSpecular * specularIntensity + scatterAmbient, 0.7);
-    fragColor = mix(fresnel * envColor, fresnel * k_s * specularIntensity, 0.8) + scatterAmbient;
+    fragColor = mix(fresnel * envColor, fresnel * k_s * specularIntensity, 0.7) + scatterAmbient;
 
 
     fragColor.a = 0.85;
