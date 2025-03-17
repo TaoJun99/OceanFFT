@@ -963,6 +963,19 @@ void addHeights() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+void calculateFPS() {
+    static double lastTime = glfwGetTime();
+    static int frameCount = 0;
+
+    double currentTime = glfwGetTime();
+    frameCount++;
+
+    if (currentTime - lastTime >= 1.0) {  // Update every second
+        std::cout << "FPS: " << frameCount << std::endl;
+        frameCount = 0;
+        lastTime = currentTime;
+    }
+}
 
 void cleanup() {
     // Clean up resources
@@ -1180,6 +1193,7 @@ int main() {
         glDepthMask(GL_TRUE);  // Re-enable depth writing
         glDisable(GL_BLEND);
 
+        calculateFPS();
 
         // Swap front and back buffers
         glfwSwapBuffers(window);
