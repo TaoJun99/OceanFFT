@@ -19,7 +19,7 @@ GLuint skyboxVAO, skyboxVBO, skyboxShader;
 GLuint skyBoxtid;
 //GLuint projectionLoc, viewLoc, modelLoc;
 glm::mat4 projection, view;
-glm::vec3 cameraPos = glm::vec3(0.0f, 13.0f, 2.5f);
+glm::vec3 cameraPos = glm::vec3(0.0f, 5.0f, 2.5f);
 float cameraWidth = 800.0f;
 float cameraHeight = 600.0f;
 Camera camera(cameraWidth, cameraHeight, cameraPos);
@@ -43,10 +43,10 @@ IFFT ifftClass;
 const GLfloat lightAmbient[] = { 0.1f, 0.2f, 0.3f, 1.0f };
 const GLfloat lightDiffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 const GLfloat lightSpecular[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-const GLfloat lightPosition[4] = {0.0f, 100.0f, 0.0f, 1.0f }; // Given in eye space
+const GLfloat lightPosition[4] = {50.0f, 100.0f, 50.0f, 1.0f }; // Given in eye space
 
 // Grid size
-const int gridSize = 1024; // Number of segments in each direction
+const int gridSize = 512; // Number of segments in each direction
 const float size = 100.0f;  // Size of the plane
 
 float quadVertices[] = {
@@ -481,6 +481,20 @@ void drawSkybox() {
     glBindVertexArray(0);
 }
 
+void calculateFPS() {
+    static double lastTime = glfwGetTime();
+    static int frameCount = 0;
+
+    double currentTime = glfwGetTime();
+    frameCount++;
+
+    if (currentTime - lastTime >= 1.0) {  // Update every second
+        std::cout << "FPS: " << frameCount << std::endl;
+        frameCount = 0;
+        lastTime = currentTime;
+    }
+}
+
 
 void cleanup() {
     // Clean up resources
@@ -609,7 +623,7 @@ int main() {
 
         camera.Inputs(window);
         view = camera.getViewMatrix();
-        projection = camera.getProjMatrix(70.0f, 0.1f, 100.0f);
+        projection = camera.getProjMatrix(70.0f, 0.1f, 1000.0f);
 
         glDisable(GL_DEPTH_TEST);
         drawSkybox();
@@ -625,14 +639,16 @@ int main() {
 
 
         // 2️⃣ Enable blending for water
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glDepthMask(GL_FALSE);  // Disable writing to the depth buffer
+//        glEnable(GL_BLEND);
+//        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+//        glDepthMask(GL_FALSE);  // Disable writing to the depth buffer
 
         drawWater();
 
         glDepthMask(GL_TRUE);  // Re-enable depth writing
         glDisable(GL_BLEND);
+
+        calculateFPS();
 
 
         // Swap front and back buffers
