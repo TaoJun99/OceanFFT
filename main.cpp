@@ -278,10 +278,10 @@ void computeFourier() {
     GLuint NLoc = glGetUniformLocation(computeFourierShader, "N");
     GLuint LLoc = glGetUniformLocation(computeFourierShader, "L");
 
-    glUniform1f(alphaLoc, 0.0081);
+    glUniform1f(alphaLoc, 0.01);
     glUniform1f(gLoc, 9.81);
-    glUniform1f(k_pLoc, 0.001);
-    glUniform1f(gammaLoc, 3.3);
+    glUniform1f(k_pLoc, 0.3);
+    glUniform1f(gammaLoc, 1.5);
     glUniform1i(NLoc, gridSize);
     glUniform1f(LLoc, size);
 

@@ -97,7 +97,8 @@ void main() {
     vec3 H = normalize(L + V);      // Half-vector
 
     float V_dot_H = max(0.0, dot(V, H));
-    float exponential = pow(1 - V_dot_H, 2.0);
+//    float exponential = pow(1 - V_dot_H, 2.0);
+    float exponential = pow(1 - max(0.0, dot(V, N)), 5.0);
     float F0 = 0.02;
     float fresnel = F0 + (1.0 - F0) * exponential;
     float specularIntensity = pow(max(0.0, dot(H, N)), n);
@@ -118,8 +119,8 @@ void main() {
 //    fragColor = blinnPhong;
 //    fragColor = fresnel * envColor;
     // env map w light scatter
-//    fragColor = mix(fresnel * envColor , fresnel * k_s * LightSpecular * specularIntensity + scatterAmbient, 0.7);
-    fragColor = mix(fresnel * envColor, fresnel * k_s * specularIntensity, 0.7) + scatterAmbient;
+    fragColor = mix(fresnel * envColor , fresnel * k_s * LightSpecular * specularIntensity + scatterAmbient, 0.8);
+//    fragColor = mix(fresnel * envColor, fresnel * k_s * specularIntensity, 0.7) + scatterAmbient;
 
 
     fragColor.a = 0.85;
