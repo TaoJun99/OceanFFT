@@ -147,7 +147,7 @@ void generatePlane(float** vertices, unsigned int** indices, int* indexCount) {
     for (int z = 0; z <= gridSize; ++z) {
         for (int x = 0; x <= gridSize; ++x) {
             (*vertices)[(z * (gridSize + 1) + x) * 3 + 0] = (x / (float)gridSize) * size - size / 2; // x
-            (*vertices)[(z * (gridSize + 1) + x) * 3 + 1] = 0.0f; // y (initially flat)
+            (*vertices)[(z * (gridSize + 1) + x) * 3 + 1] = yPlaneHeight; // y (initially flat)
             (*vertices)[(z * (gridSize + 1) + x) * 3 + 2] = (z / (float)gridSize) * size - size / 2; // z
         }
     }
@@ -781,16 +781,16 @@ glm::vec3 computePlaneIntersection(const glm::vec2& mouseNDC) {
 
     // Check if the intersection is within the bounded region
     float halfSize = size / 2.0f;
-    if (intersection.x < -halfSize || intersection.x > halfSize ||
-        intersection.z < -halfSize || intersection.z > halfSize) {
-        std::cout << "Intersection is out of bounds!" << std::endl;
-        return glm::vec3(-1, -1, -1); // Outside the boundary
-    }
+//    if (intersection.x < -halfSize || intersection.x > halfSize ||
+//        intersection.z < -halfSize || intersection.z > halfSize) {
+//        std::cout << "Intersection is out of bounds!" << std::endl;
+//        return glm::vec3(-1, -1, -1); // Outside the boundary
+//    }
 
     return intersection;
 }
 
-
+glm::vec3 lastIntersection = glm::vec3(0.0f, 0.0f, 0.0f);
 
 void applyForce(GLFWwindow *window) {
     int width, height;
@@ -805,6 +805,16 @@ void applyForce(GLFWwindow *window) {
     if (intersection == glm::vec3(-1, -1, -1)) return;
 
     intersection = (intersection + size / 2) / size;
+
+    glm::vec3 diff = intersection - lastIntersection;
+
+    glm::vec2 forceDir;
+
+    if (diff.x == 0 && diff.z == 0) {
+        forceDir = glm::vec2(diff.x, diff.z);
+    } else {
+        forceDir = normalize(glm::vec2(diff.x, diff.z));
+    }
 
 //    std::cout << "Intersection: " << intersection.x << ", " << intersection.y << ", " << intersection.z << std::endl;
 
@@ -822,9 +832,10 @@ void applyForce(GLFWwindow *window) {
     GLuint sizeLoc = glGetUniformLocation(applyForceShaderProgram, "size");
 
     glUniform3fv(forcePosLoc, 1, glm::value_ptr(intersection));
-    glUniform2f(forceDirLoc, 1.0f, 0.0f);
+//    glUniform2f(forceDirLoc, 1.0f, 0.0f);
+    glUniform2fv(forceDirLoc, 1, glm::value_ptr(forceDir));
     glUniform1f(forceRadiusLoc, 0.01);
-    glUniform1f(forceStrengthLoc, 20.0f);
+    glUniform1f(forceStrengthLoc, 10.0f);
     glUniform1i(velocityTextureLoc, 6);
     glUniform1i(gridSizeLoc, gridSize);
     glUniform1f(sizeLoc, size);
@@ -1160,8 +1171,8 @@ int main() {
         updateFourier();
         ifftOceanHeight();
 
-        getFourierVelocity();
-        ifftVelocity();
+//        getFourierVelocity();
+//        ifftVelocity();
 
         if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
             applyForce(window);
