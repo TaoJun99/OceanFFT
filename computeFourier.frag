@@ -44,7 +44,6 @@ void main() {
 //    int k_y = -(gridPos.y + 1) + N / 2;
     //    int k_y = gridPos.y + N / 2;
 
-
 //    int k_x = (gridPos.x < (N / 2)) ? gridPos.x : gridPos.x - N; // left to right: 0, +ve, -ve
 //    int k_y = (gridPos.y < (N / 2)) ? -(gridPos.y + 1) : -(gridPos.y - N + 1); // top to bottom: 0, +ve, -ve
 
@@ -64,7 +63,8 @@ void main() {
         return;
     }
 
-    float sigma = (k_mag <= k_p) ? 0.07 : 0.09;
+//    float sigma = (k_mag <= k_p) ? 0.07 : 0.09;
+    float sigma = (k_mag <= k_p) ? 0.02 : 0.5;
 
     // Compute JONSWAP spectrum
     float term1 = alpha * g * g / pow(k_mag, 5.0);

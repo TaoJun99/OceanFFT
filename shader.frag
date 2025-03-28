@@ -27,8 +27,8 @@ out vec4 fragColor;
 //const vec4 k_s = vec4(1.0, 0.9, 0.9, 1.0);   // Transparent specular
 //const float n = 100.0;                        // Sharp reflections
 
-const vec4 k_a = vec4(0.5, 0.5, 0.5, 1.0);
-const vec4 k_d = vec4(0.1, 0.3, 0.5, 1.0);
+const vec4 k_a = vec4(0.3, 0.3, 0.3, 1.0);
+const vec4 k_d = vec4(0.1, 0.2, 0.3, 1.0);
 const vec4 k_s = vec4(1.0, 1.0, 1.0, 1.0);
 const float n = 100.0;
 
@@ -59,7 +59,7 @@ vec3 computeSurfaceNormal() {
 void main() {
 
     // Get view vector
-    vec3 viewVec = -normalize(ecPosition);
+    vec3 viewVec = normalize(ecPosition);
 
     // Get light vector: from surface to light source
     vec3 lightVec;
@@ -74,7 +74,8 @@ void main() {
     // Compute Phong Lighting
     vec3 reflectVec = reflect(-lightVec, N);
 
-    float L_dot_N = max(0.0, dot(lightVec, N));
+    float L_dot_N = max(0.2, dot(lightVec, N));
+
     float R_dot_V = max(0.0, dot(reflectVec, viewVec));
 
 //    vec4 phongColor = (LightAmbient * k_a) + (LightDiffuse * k_d * L_dot_N) + (LightSpecular * k_s * pow(R_dot_V, n));
@@ -86,12 +87,12 @@ void main() {
     vec4 envColor = texture(envMap, wcReflectVec);
 
     vec3 L = normalize(lightVec);  // Light direction
-    vec3 V = normalize(viewVec);    // View direction
+    vec3 V = viewVec;    // View direction
     vec3 H = normalize(L + V);      // Half-vector
 
-    float V_dot_H = max(0.0, dot(V, H));
+    float V_dot_H = max(0.0, dot(V, N));
     float exponential = pow(max(0.0, 1 - V_dot_H), 1.0);
-    float F0 = 0.3;
+    float F0 = 0.02;
     float fresnel = F0 + (1.0 - F0) * exponential;
     float specularIntensity = pow(max(0.0, dot(H, N)), n);
 
@@ -107,11 +108,11 @@ void main() {
 
 
     // env map w blinn phong
-//    fragColor = mix(fresnel * envColor, k_s * specularIntensity + (LightAmbient * k_a) + (LightDiffuse * k_d * L_dot_N), 0.6);
+    fragColor = mix(fresnel * envColor, fresnel * k_s * specularIntensity + (LightAmbient * k_d) + (LightDiffuse * k_d * L_dot_N), 0.6);
 //    fragColor = blinnPhong;
 //    fragColor = fresnel * envColor;
     // env map w light scatter
-    fragColor = mix(fresnel * envColor , k_s * LightSpecular * specularIntensity + scatterAmbient, 0.7);
+//    fragColor = mix(fresnel * envColor , k_s * LightSpecular * specularIntensity + scatterAmbient, 0.7);
 //    fragColor = mix(fresnel * envColor, k_s * specularIntensity, 0.5) + scatterAmbient;
 
 

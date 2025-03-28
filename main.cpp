@@ -43,11 +43,11 @@ IFFT ifftClass;
 const GLfloat lightAmbient[] = { 0.1f, 0.2f, 0.3f, 1.0f };
 const GLfloat lightDiffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 const GLfloat lightSpecular[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-const GLfloat lightPosition[4] = {50.0f, 100.0f, 50.0f, 1.0f }; // Given in eye space
+const GLfloat lightPosition[4] = {0.0f, 1.0f, 0.0f, 0.0f }; // Given in eye space
 
 // Grid size
 const int gridSize = 512; // Number of segments in each direction
-const float size = 100.0f;  // Size of the plane
+const float size = 20.0f;  // Size of the plane
 
 float quadVertices[] = {
         -1.0f, -1.0f,
@@ -233,10 +233,10 @@ void computeFourier() {
     GLuint NLoc = glGetUniformLocation(computeFourierShader, "N");
     GLuint LLoc = glGetUniformLocation(computeFourierShader, "L");
 
-    glUniform1f(alphaLoc, 0.0081);
+    glUniform1f(alphaLoc, 0.1);
     glUniform1f(gLoc, 9.81);
-    glUniform1f(k_pLoc, 0.001);
-    glUniform1f(gammaLoc, 3.3);
+    glUniform1f(k_pLoc, 0.3);
+    glUniform1f(gammaLoc, 1.5);
     glUniform1i(NLoc, gridSize);
     glUniform1f(LLoc, size);
 

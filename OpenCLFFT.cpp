@@ -104,7 +104,7 @@ GLfloat* OpenCLFFT::performIFFTFromOpenGLTexture(GLfloat* textureData, size_t gr
 //        minVal = std::min(minVal, ifftData[i]);
 //        maxVal = std::max(maxVal, ifftData[i]);
 //    }
-
+//
 //    GLfloat range = maxVal - minVal;
 //    if (range > 0.0f) {
 //        for (size_t i = 0; i < gridSize * gridSize * 2; ++i) {
